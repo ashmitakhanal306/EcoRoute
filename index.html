@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -404,19 +404,24 @@ function fillDemo(role) {
   clearError();
   emailEl.value = DEMO[role].email;
   passEl.value  = DEMO[role].password;
+
+  // Visual: highlight the selected chip briefly
   document.querySelectorAll('.demo-chip').forEach(c => { c.style.outline = ''; c.style.outlineOffset = ''; });
   const chip = document.getElementById('chip-' + role);
   if (chip) {
-    chip.style.outline = '2px solid rgba(255,255,255,.35)';
+    chip.style.outline = '2px solid rgba(255,255,255,.5)';
     chip.style.outlineOffset = '2px';
-    setTimeout(() => { chip.style.outline = ''; chip.style.outlineOffset = ''; }, 900);
+    setTimeout(() => { chip.style.outline = ''; chip.style.outlineOffset = ''; }, 600);
   }
-  loginBtn.focus();
+
+  // One-click login: fire login immediately after a 150 ms visual ripple
+  setTimeout(() => handleLogin(), 150);
 }
 
 ['citizen', 'driver', 'admin'].forEach(role => {
   document.getElementById('chip-' + role).addEventListener('click', () => fillDemo(role));
 });
+
 
 /* Login handler */
 async function handleLogin() {
