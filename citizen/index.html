@@ -1083,6 +1083,10 @@
     .user-dot { width: 14px; height: 14px; border-radius: 50%; background: #2563eb; border: 2.5px solid #fff; box-shadow: 0 0 0 4px rgba(37,99,235,.2); }
     .truck-marker { background: transparent; border: none; }
     .truck-marker-inner { width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg,#16a34a,#059669); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; box-shadow: 0 2px 10px rgba(22,163,74,.4); transition: transform .4s var(--ease-out); }
+  
+    .topbar-back-btn { background: none; border: none; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center; color: #64748b; margin-right: 2px; margin-left: -4px; border-radius: 6px; transition: background .15s, color .15s; }
+    .topbar-back-btn:hover { background: #f1f5f9; color: #0f172a; }
+    .topbar-back-btn svg { width: 20px; height: 20px; }
   </style>
 </head>
 <body>
@@ -1093,6 +1097,9 @@
   </div>
   <header id="topbar">
     <div class="topbar-logo">
+      <button id="headerBackBtn" class="topbar-back-btn" title="Exit to Main Page" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
       <div class="topbar-logo-icon">
         <svg viewBox="0 0 44 44" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round">
           <path d="M22 6 C29 6 37 13 37 22 C37 31 30 37 22 37 C16 37 11 32 12 26 C13 20 18 16 22 16 C27 16 31 20 31 24 C31 28 27 31 23 30"/>
@@ -2688,6 +2695,7 @@ window.addEventListener('storage', e => {
 });
 
 document.getElementById('logoutBtn').addEventListener('click', () => logout());
+if (document.getElementById('headerBackBtn')) document.getElementById('headerBackBtn').addEventListener('click', () => logout());
 document.getElementById('avatarBtn').addEventListener('click', () => switchTab('profile'));
 
 /* PWA Service Worker Registration */
