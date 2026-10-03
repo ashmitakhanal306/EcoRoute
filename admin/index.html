@@ -62,6 +62,19 @@ new Chart(ctx, {
   }
 });
 
+
+if (document.getElementById('adminExitBtn')) {
+  document.getElementById('adminExitBtn').addEventListener('click', () => {
+    window.location.href = '../index.html';
+  });
+  
+  const exitBtn = document.getElementById('adminExitBtn');
+  if (exitBtn) {
+    exitBtn.addEventListener('mouseenter', () => { exitBtn.style.color = '#fff'; exitBtn.style.background = 'rgba(255,255,255,0.1)'; });
+    exitBtn.addEventListener('mouseleave', () => { exitBtn.style.color = '#94a3b8'; exitBtn.style.background = 'rgba(255,255,255,0.05)'; });
+  }
+}
+
 /* ======================================================
        AUTH GUARD
     ====================================================== */
