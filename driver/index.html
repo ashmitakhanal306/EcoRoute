@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>EcoRoute â€” Driver Route Console</title>
+  <title>EcoRoute &mdash; Driver Route Console</title>
   <meta name="description" content="High-contrast route navigation and stop cleanup console for municipal waste collection drivers." />
   <link rel="manifest" href="../manifest.json" />
   <meta name="theme-color" content="#16a34a" />
@@ -409,9 +409,9 @@
           <span class="stop-type-badge chronic" id="stopTypeBadge">ðŸ”¥ Chronic</span>
         </div>
         <div class="stop-distance-eta" id="stopDistanceEta">
-          <span>ðŸ“ <strong class="highlight" id="nextStopDist">â€” m</strong></span>
+          <span>ðŸ“ <strong class="highlight" id="nextStopDist">&mdash; m</strong></span>
           <span>&bull;</span>
-          <span>â±ï¸ <strong class="highlight" id="nextStopEta">â€” mins</strong></span>
+          <span>â±ï¸ <strong class="highlight" id="nextStopEta">&mdash; mins</strong></span>
         </div>
       </div>
 
@@ -960,14 +960,14 @@ function subscribeBroadcastChannel() {
         if (!hotspot || !hotspot.id) return;
 
         if (hotspot.is_chronic === false) {
-          // Unmark â€” remove from route and reload
+          // Unmark &mdash; remove from route and reload
           showToast('â„¹ï¸ "' + (hotspot.name || 'Zone') + '" removed from chronic priority');
           routeStops = routeStops.filter(s => s.id !== hotspot.id);
           renderRoute();
           return;
         }
 
-        // Mark as chronic â€” inject into route
+        // Mark as chronic &mdash; inject into route
         showToast('ðŸ”¥ Chronic Zone: "' + (hotspot.name || 'New Zone') + '" added to your route!');
 
         const newStop = {
@@ -988,7 +988,7 @@ function subscribeBroadcastChannel() {
         // Flash MARK AS CLEANED button red to alert driver
         markCleanedBtn.style.transition = 'background 0.2s';
         markCleanedBtn.style.background = '#dc2626';
-        markCleanedText.textContent = 'ðŸ”´ NEW CHRONIC STOP ADDED';
+        markCleanedText.textContent = '&#128308; NEW CHRONIC STOP ADDED';
         setTimeout(() => {
           markCleanedBtn.style.background = '';
           markCleanedText.textContent = 'MARK AS CLEANED';

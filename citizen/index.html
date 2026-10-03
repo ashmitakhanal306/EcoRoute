@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>EcoRoute &mdash; Citizen</title>
-  <meta name="description" content="EcoRoute Citizen Dashboard â€” report dump sites, verify community reports, and track the garbage truck live." />
+  <meta name="description" content="EcoRoute Citizen Dashboard &mdash; report dump sites, verify community reports, and track the garbage truck live." />
   <link rel="manifest" href="../manifest.json" />
   <meta name="theme-color" content="#16a34a" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -1183,7 +1183,7 @@
           <span class="loc-chip-icon">&#128205;</span>
           <div class="loc-chip-text">
             <div class="loc-chip-label">Location</div>
-            <div class="loc-chip-value muted" id="locChipValue">Detecting&#8230;</div>
+            <div class="loc-chip-value muted" id="locChipValue">Detecting...8230;</div>
           </div>
           <div class="loc-spinner" id="locSpinner"></div>
           <button class="loc-chip-btn" id="retryLocBtn" type="button" style="display:none">Retry</button>
@@ -1250,7 +1250,7 @@
         </div>
         <div class="chat-header-actions">
           <button class="ai-mode-pill" id="aiModeToggle" title="Toggle AI Mode vs Local SWM 2016 Knowledge Base" type="button">
-            <span id="aiModeIcon">âš¡</span>
+            <span id="aiModeIcon">&#9889;</span>
             <span id="aiModeText">Local</span>
           </button>
           <button class="chat-clear-btn" id="clearChatBtn" title="Clear chat history" type="button" aria-label="Clear chat">
@@ -1269,16 +1269,16 @@
       <!-- 4 Quick-suggestion chips -->
       <div class="suggestion-chips-bar" id="suggestionChips">
         <button class="suggestion-chip" data-query="Broken glass?" type="button">
-          <span>ðŸ”¨</span> Broken glass?
+          <span>&#128296;</span> Broken glass?
         </button>
         <button class="suggestion-chip" data-query="Old batteries?" type="button">
-          <span>ðŸ”‹</span> Old batteries?
+          <span>&#128267;</span> Old batteries?
         </button>
         <button class="suggestion-chip" data-query="Food waste?" type="button">
           <span>ðŸ</span> Food waste?
         </button>
         <button class="suggestion-chip" data-query="Used diapers?" type="button">
-          <span>ðŸ‘¶</span> Used diapers?
+          <span>&#128118;</span> Used diapers?
         </button>
       </div>
       <form id="chatForm">
@@ -1759,7 +1759,7 @@ function subscribeRealtime() {
 }
 
 /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   REPORT TAB â€” camera, compress, geo, submit
+   REPORT TAB &mdash; camera, compress, geo, submit
 â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
 const photoFileEl    = document.getElementById('photoFile');
@@ -1845,7 +1845,7 @@ function setLocDetected(lat, lng) {
 window.setLocDetected = setLocDetected;
 
 function setLocError() {
-  locValueEl.textContent = 'Permission denied â€” tap map to pin';
+  locValueEl.textContent = 'Permission denied &mdash; tap map to pin';
   locValueEl.classList.add('muted');
   locChipEl.classList.add('error'); locChipEl.classList.remove('detected');
   locSpinnerEl.style.display = 'none';
@@ -1868,7 +1868,7 @@ function setLocError() {
 function detectLocation() {
   locSpinnerEl.style.display = '';
   retryLocBtnEl.style.display = 'none';
-  locValueEl.textContent = 'Detectingâ€¦';
+  locValueEl.textContent = 'Detecting...';
   locValueEl.classList.add('muted');
   locChipEl.classList.remove('detected', 'error');
   if (!navigator.geolocation) { setLocError(); return; }
@@ -2061,7 +2061,7 @@ document.getElementById('reportAgainBtn').addEventListener('click', resetReportT
 document.getElementById('goHomeBtn').addEventListener('click', () => { resetReportTab(); switchTab('home'); });
 
 /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   CHAT TAB â€” WhatsApp-style Segregation Assistant
+   CHAT TAB &mdash; WhatsApp-style Segregation Assistant
    Two-layer architecture:
    Layer 1: Local SWM 2016 knowledge base (/shared/wasteKnowledge.js)
    Layer 2: Optional AI mode (Supabase Edge Function 'waste-chat')
@@ -2086,7 +2086,7 @@ let aiModeActive = localStorage.getItem(AI_STORAGE_KEY) === 'true';
 function updateAiToggleUI() {
   if (!aiModeToggleEl) return;
   aiModeToggleEl.classList.toggle('active', aiModeActive);
-  aiModeIconEl.textContent = aiModeActive ? 'âœ¨' : 'âš¡';
+  aiModeIconEl.textContent = aiModeActive ? '&#10024;' : '&#9889;';
   aiModeTextEl.textContent = aiModeActive ? 'AI' : 'Local';
   aiModeToggleEl.title     = aiModeActive
     ? 'AI Mode active (Edge Function). Click to switch to Offline Local KB.'
@@ -2370,7 +2370,7 @@ if (clearChatBtnEl) {
 }
 
 /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   PROFILE TAB â€” Trust Score, Realtime & Reports
+   PROFILE TAB &mdash; Trust Score, Realtime & Reports
 â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
 const trustRingFillEl = document.getElementById('trustRingFill');
@@ -2421,7 +2421,7 @@ function updateTrustScoreUI(score) {
     if (trustRingNumEl)   trustRingNumEl.style.color = '#15803d';
     if (trustTierBadgeEl) {
       trustTierBadgeEl.className = 'trust-badge-pill trusted';
-      trustTierIconEl.textContent = 'âœ¨';
+      trustTierIconEl.textContent = '&#10024;';
       trustTierTextEl.textContent = 'Trusted Reporter (80+)';
     }
   }
@@ -2456,10 +2456,10 @@ function renderMyReports() {
       : `<div class="my-report-thumb">ðŸ—‘ï¸</div>`;
 
     let statusCls = 'pending';
-    let statusText = 'â³ Pending';
+    let statusText = '&#8203;&#9203; Pending';
     if (r.status === 'verified') {
       statusCls = 'verified';
-      statusText = 'âœ“ Verified';
+      statusText = '&#10024; Verified';
     } else if (r.status === 'cleaned') {
       statusCls = 'cleaned';
       statusText = 'ðŸ§¹ Cleaned';
@@ -2627,7 +2627,7 @@ supabase.channel('citizen-profile-live-' + ME.id)
       updateTrustScoreUI(ME.trust_score);
       const diff = ME.trust_score - oldScore;
       const diffText = diff > 0 ? ` (+${diff} pts!)` : '';
-      showToast(`â­ Trust Score updated: ${ME.trust_score} pts${diffText}`);
+      showToast(`&#128200; Trust Score updated: ${ME.trust_score} pts${diffText}`);
     }
   })
   .subscribe();
@@ -2654,15 +2654,15 @@ try {
       const oldScore = ME.trust_score;
       ME.trust_score = d.new_score;
       updateTrustScoreUI(ME.trust_score);
-      showToast(`â­ Trust Score updated: ${ME.trust_score} pts (+${d.diff || 5} pts!)`);
+      showToast(`&#128200; Trust Score updated: ${ME.trust_score} pts (+${d.diff || 5} pts!)`);
     } else if (d.type === 'HOTSPOT_CLEANED') {
-      showToast(`âœ¨ Dump cleaned by driver! +10 points awarded.`);
+      showToast(`&#10024; Dump cleaned by driver! +10 points awarded.`);
       loadFeed();
       loadProfile();
     } else if (d.type === 'NEW_REPORT') {
       loadFeed();
     } else if (d.type === 'RESET_DEMO') {
-      showToast('âœ¨ Demo data reset to baseline');
+      showToast('&#10024; Demo data reset to baseline');
       loadFeed();
       loadProfile();
     }
@@ -2677,7 +2677,7 @@ window.addEventListener('storage', e => {
         if (parsed.profile.trust_score !== ME.trust_score) {
           ME.trust_score = parsed.profile.trust_score;
           updateTrustScoreUI(ME.trust_score);
-          showToast(`â­ Trust Score updated: ${ME.trust_score} pts`);
+          showToast(`&#128200; Trust Score updated: ${ME.trust_score} pts`);
         }
       }
     } catch(err) {}
