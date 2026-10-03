@@ -1,18 +1,18 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>EcoRoute — Municipal Command Center</title>
+  <title>EcoRoute â€” Municipal Command Center</title>
   <meta name="description" content="City-wide command center for waste hotspot monitoring, fleet dispatching, and chronic zone resolution." />
-  <link rel="manifest" href="/manifest.json" />
+  <link rel="manifest" href="../manifest.json" />
   <meta name="theme-color" content="#040905" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="EcoRoute Command" />
-  <link rel="apple-touch-icon" href="/assets/icons/icon-192.png" />
-  <link rel="icon" type="image/png" sizes="48x48" href="/assets/icons/favicon.png" />
-  <link rel="icon" type="image/svg+xml" href="/assets/icons/icon.svg" />
+  <link rel="apple-touch-icon" href="../assets/icons/icon-192.png" />
+  <link rel="icon" type="image/png" sizes="48x48" href="../assets/icons/favicon.png" />
+  <link rel="icon" type="image/svg+xml" href="../assets/icons/icon.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
@@ -389,7 +389,7 @@
     .feed-time { font-size: .67rem; color: #475569; font-weight: 600; flex-shrink: 0; }
 
     /* ======================================================
-       PANEL 2 — RIGHT
+       PANEL 2 â€” RIGHT
     ====================================================== */
     .panel-2 {
       width: 320px; min-width: 320px; height: 100%;
@@ -447,10 +447,10 @@
     .fleet-live-dot { width: 6px; height: 6px; border-radius: 50%; background: #22c55e; animation: pulseDot 1.8s infinite; }
 
     /* ======================================================
-       PANEL 3 — CHRONIC DUMP ZONE MANAGER
+       PANEL 3 â€” CHRONIC DUMP ZONE MANAGER
     ====================================================== */
 
-    /* Bottom panel — expand height for table */
+    /* Bottom panel â€” expand height for table */
     .bottom-panel { min-height: 220px; }
     .bottom-panel-body { overflow-x: auto; overflow-y: auto; max-height: 260px; padding: 0; }
 
@@ -501,9 +501,9 @@
       user-select: none; transition: color .15s;
     }
     .cdz-table thead th:hover { color: #94a3b8; }
-    .cdz-table thead th.sort-asc  .sort-arrow::after { content: ' ▲'; }
-    .cdz-table thead th.sort-desc .sort-arrow::after { content: ' ▼'; }
-    .cdz-table thead th:not(.sort-asc):not(.sort-desc) .sort-arrow::after { content: ' ▼'; opacity: .25; }
+    .cdz-table thead th.sort-asc  .sort-arrow::after { content: ' â–²'; }
+    .cdz-table thead th.sort-desc .sort-arrow::after { content: ' â–¼'; }
+    .cdz-table thead th:not(.sort-asc):not(.sort-desc) .sort-arrow::after { content: ' â–¼'; opacity: .25; }
     .cdz-table tbody tr {
       border-bottom: 1px solid rgba(255,255,255,.04);
       cursor: pointer; transition: background .12s;
@@ -925,8 +925,8 @@
 
 <!-- Auth Guard -->
 <div id="guardLoader">
-  <div class="guard-logo">🌿</div>
-  <p>Authenticating Command Center…</p>
+  <div class="guard-logo">ðŸŒ¿</div>
+  <p>Authenticating Command Centerâ€¦</p>
 </div>
 
 <!-- Admin Shell -->
@@ -936,7 +936,7 @@
   <aside class="admin-sidebar">
     <div class="sidebar-top">
       <div class="brand-header">
-        <div class="brand-logo">🌿</div>
+        <div class="brand-logo">ðŸŒ¿</div>
         <div class="brand-text">
           <h1>EcoRoute</h1>
           <span>Command Center</span>
@@ -947,28 +947,28 @@
         <span class="nav-section-label">Navigation</span>
 
         <a class="nav-item active" id="navCommandMap" href="#" data-section="map">
-          <span class="nav-icon">🗺️</span>
+          <span class="nav-icon">ðŸ—ºï¸</span>
           <span class="nav-label">Command Map</span>
         </a>
         <a class="nav-item" id="navPredictions" href="#" data-section="predictions">
-          <span class="nav-icon">🔮</span>
+          <span class="nav-icon">ðŸ”®</span>
           <span class="nav-label">Predictions</span>
           <span class="nav-badge green">AI</span>
         </a>
         <a class="nav-item" id="navChronic" href="#" data-section="chronic">
-          <span class="nav-icon">🚩</span>
+          <span class="nav-icon">ðŸš©</span>
           <span class="nav-label">Chronic Zones</span>
           <span class="nav-badge" id="chronicNavBadge">4</span>
         </a>
         <div class="sidebar-divider"></div>
         <a class="nav-item" id="navFleet" href="#" data-section="fleet">
-          <span class="nav-icon">🚛</span>
+          <span class="nav-icon">ðŸš›</span>
           <span class="nav-label">Fleet</span>
         </a>
         <a class="nav-item" id="navDemoControls" href="#" data-section="demo" title="Live Jury Presentation Controls (Ctrl+Shift+D)" style="margin-top:6px;border:1px dashed rgba(34,197,94,0.3);background:rgba(34,197,94,0.06);border-radius:10px;">
-          <span class="nav-icon">⚡</span>
+          <span class="nav-icon">âš¡</span>
           <span class="nav-label">Demo Controls</span>
-          <span class="nav-badge green" style="font-family:monospace;font-size:0.65rem;">^⇧D</span>
+          <span class="nav-badge green" style="font-family:monospace;font-size:0.65rem;">^â‡§D</span>
         </a>
       </nav>
     </div>
@@ -996,28 +996,28 @@
     <header class="top-kpi-bar">
       <div class="kpi-group">
         <div class="kpi-card total" id="kpiCardTotal">
-          <div class="kpi-icon">📋</div>
+          <div class="kpi-icon">ðŸ“‹</div>
           <div class="kpi-details">
             <span class="kpi-value" id="kpiTotal">25</span>
             <span class="kpi-label">Total Reports</span>
           </div>
         </div>
         <div class="kpi-card active-dumps" id="kpiCardActive">
-          <div class="kpi-icon">🚨</div>
+          <div class="kpi-icon">ðŸš¨</div>
           <div class="kpi-details">
             <span class="kpi-value" id="kpiActive">13</span>
             <span class="kpi-label">Active Dumps</span>
           </div>
         </div>
         <div class="kpi-card cleaned-today" id="kpiCardCleaned">
-          <div class="kpi-icon">✨</div>
+          <div class="kpi-icon">âœ¨</div>
           <div class="kpi-details">
             <span class="kpi-value" id="kpiCleaned">2</span>
             <span class="kpi-label">Cleaned Today</span>
           </div>
         </div>
         <div class="kpi-card trucks" id="kpiCardTrucks">
-          <div class="kpi-icon">🚛</div>
+          <div class="kpi-icon">ðŸš›</div>
           <div class="kpi-details">
             <span class="kpi-value" id="kpiTrucks">1</span>
             <span class="kpi-label">Active Trucks</span>
@@ -1046,13 +1046,13 @@
               All <span class="filter-count" id="fcAll">15</span>
             </button>
             <button class="filter-chip" data-filter="reported" id="fReported" type="button">
-              🔴 Reported <span class="filter-count" id="fcReported">13</span>
+              ðŸ”´ Reported <span class="filter-count" id="fcReported">13</span>
             </button>
             <button class="filter-chip" data-filter="cleaned" id="fCleaned" type="button">
-              🟢 Cleaned <span class="filter-count" id="fcCleaned">2</span>
+              ðŸŸ¢ Cleaned <span class="filter-count" id="fcCleaned">2</span>
             </button>
             <button class="filter-chip" data-filter="chronic" id="fChronic" type="button">
-              🚩 Chronic <span class="filter-count" id="fcChronic">4</span>
+              ðŸš© Chronic <span class="filter-count" id="fcChronic">4</span>
             </button>
           </div>
 
@@ -1084,21 +1084,21 @@
           </div>
         </div>
 
-        <!-- PANEL 3: BOTTOM — Chronic Dump Zone Manager -->
+        <!-- PANEL 3: BOTTOM â€” Chronic Dump Zone Manager -->
         <section class="bottom-panel" id="panel3">
           <div class="bottom-panel-header">
             <div class="bp-title">
-              <span>🚨</span>
-              <span>Panel 3 · Chronic Dump Zone Manager</span>
+              <span>ðŸš¨</span>
+              <span>Panel 3 Â· Chronic Dump Zone Manager</span>
             </div>
-            <span class="bp-meta" id="p3Meta">Loading…</span>
+            <span class="bp-meta" id="p3Meta">Loadingâ€¦</span>
           </div>
 
           <!-- Toolbar: search + filter tabs -->
           <div class="p3-toolbar">
             <input
               type="search" id="p3Search" class="p3-search"
-              placeholder="🔍 Search by name or coordinates…"
+              placeholder="ðŸ” Search by name or coordinatesâ€¦"
               aria-label="Search hotspots" />
 
             <div class="p3-tabs" role="tablist" aria-label="Filter zones">
@@ -1106,10 +1106,10 @@
                 All <span class="p3-tab-count" id="tab-count-all">0</span>
               </button>
               <button class="p3-tab" data-tab="candidates" id="tab-candidates" role="tab" type="button">
-                🟡 Candidates <span class="p3-tab-count" id="tab-count-candidates">0</span>
+                ðŸŸ¡ Candidates <span class="p3-tab-count" id="tab-count-candidates">0</span>
               </button>
               <button class="p3-tab active" data-tab="chronic" id="tab-chronic" role="tab" type="button">
-                🔴 Chronic <span class="p3-tab-count" id="tab-count-chronic">0</span>
+                ðŸ”´ Chronic <span class="p3-tab-count" id="tab-count-chronic">0</span>
               </button>
             </div>
           </div>
@@ -1152,10 +1152,10 @@
         </div>
         <div class="p2-body">
 
-          <!-- ── SECTION 1: PREDICTION HEATMAP ── -->
+          <!-- â”€â”€ SECTION 1: PREDICTION HEATMAP â”€â”€ -->
           <div class="insight-card" style="gap:10px;">
             <div class="ic-header">
-              <span>🌡️ Garbage Prediction Heatmap</span>
+              <span>ðŸŒ¡ï¸ Garbage Prediction Heatmap</span>
             </div>
 
             <!-- Toggle row -->
@@ -1174,7 +1174,7 @@
             <!-- Formula tooltip button -->
             <div style="position:relative;">
               <button class="formula-btn" id="formulaBtn" type="button" aria-label="Show prediction formula">
-                🔮 How is this predicted?
+                ðŸ”® How is this predicted?
               </button>
               <div class="formula-popup" id="formulaPopup"></div>
             </div>
@@ -1192,15 +1192,15 @@
             <!-- Top-5 overflow forecast -->
             <div class="ic-header" style="margin-bottom:-4px;">
               <span>Top 5 Overflow Zones</span>
-              <span class="ic-badge medium" id="p2ForecastBadge">Computing…</span>
+              <span class="ic-badge medium" id="p2ForecastBadge">Computingâ€¦</span>
             </div>
             <div id="top5List" style="display:flex;flex-direction:column;gap:5px;"></div>
           </div>
 
-          <!-- ── SECTION 2: FLEET ZONE CONTROL ── -->
+          <!-- â”€â”€ SECTION 2: FLEET ZONE CONTROL â”€â”€ -->
           <div class="insight-card" style="gap:10px;">
             <div class="ic-header">
-              <span>🚛 Fleet Zone Control</span>
+              <span>ðŸš› Fleet Zone Control</span>
               <span class="ic-badge active">5 Zones</span>
             </div>
             <div class="ic-sub" style="margin-top:-4px;">Reduce trucks in low-risk zones to redeploy them.</div>
@@ -1209,35 +1209,35 @@
             <div id="zoneCards" style="display:flex;flex-direction:column;gap:7px;"></div>
           </div>
 
-          <!-- ── SECTION 3: EFFICIENCY GAINS ── -->
+          <!-- â”€â”€ SECTION 3: EFFICIENCY GAINS â”€â”€ -->
           <div class="insight-card" style="gap:10px;">
             <div class="ic-header">
-              <span>⚡ Live Redeployment Gains</span>
+              <span>âš¡ Live Redeployment Gains</span>
             </div>
             <div class="efficiency-grid">
               <div class="eff-cell">
-                <span class="eff-icon">🚛</span>
+                <span class="eff-icon">ðŸš›</span>
                 <span class="eff-val" id="effTrucks">0</span>
                 <span class="eff-label">Trucks Redeployed</span>
               </div>
               <div class="eff-cell">
-                <span class="eff-icon">⛽</span>
+                <span class="eff-icon">â›½</span>
                 <span class="eff-val" id="effFuel">0.0</span>
                 <span class="eff-label">Fuel Saved (L/day)</span>
               </div>
               <div class="eff-cell">
-                <span class="eff-icon">⏱️</span>
+                <span class="eff-icon">â±ï¸</span>
                 <span class="eff-val" id="effTime">0.0</span>
                 <span class="eff-label">Time Saved (hrs)</span>
               </div>
               <div class="eff-cell">
-                <span class="eff-icon">🌱</span>
+                <span class="eff-icon">ðŸŒ±</span>
                 <span class="eff-val" id="effCo2">0.0</span>
-                <span class="eff-label">CO₂ Avoided (kg)</span>
+                <span class="eff-label">COâ‚‚ Avoided (kg)</span>
               </div>
             </div>
             <div class="eff-footnote">
-              Assumptions: 18 km/truck/day · 0.35 L/km (CNG) · 2.68 kg CO₂/L ·
+              Assumptions: 18 km/truck/day Â· 0.35 L/km (CNG) Â· 2.68 kg COâ‚‚/L Â·
               25 km/h avg speed. Source: MoHUA 2024 &amp; IPCC AR6.
             </div>
           </div>
@@ -1251,7 +1251,7 @@
 
 <!-- Toast -->
 <div id="adminToast">
-  <span class="toast-icon" id="toastIcon">🔔</span>
+  <span class="toast-icon" id="toastIcon">ðŸ””</span>
   <div class="toast-body">
     <span class="toast-title" id="toastTitle">Notification</span>
     <span class="toast-sub"   id="toastSub"></span>
@@ -1261,20 +1261,20 @@
 <!-- Confirmation Modal -->
 <div class="cdz-modal-overlay" id="cdzModal" role="dialog" aria-modal="true" aria-labelledby="cdzModalTitle">
   <div class="cdz-modal">
-    <div class="cdz-modal-icon">🚨</div>
+    <div class="cdz-modal-icon">ðŸš¨</div>
     <div class="cdz-modal-title" id="cdzModalTitle">Confirm: Mark as Chronic Zone</div>
     <div class="cdz-modal-body">
       This location will be escalated to a <b>Chronic Dump Zone</b>:
-      <span class="cdz-modal-highlight" id="cdzModalName">—</span>
+      <span class="cdz-modal-highlight" id="cdzModalName">â€”</span>
     </div>
     <div class="cdz-modal-effects">
-      <span class="cdz-effect-chip">🔴 Map pin upgraded</span>
-      <span class="cdz-effect-chip">🚛 Auto-added to driver route</span>
-      <span class="cdz-effect-chip">⚡ Priority HIGH</span>
+      <span class="cdz-effect-chip">ðŸ”´ Map pin upgraded</span>
+      <span class="cdz-effect-chip">ðŸš› Auto-added to driver route</span>
+      <span class="cdz-effect-chip">âš¡ Priority HIGH</span>
     </div>
     <div class="cdz-modal-actions">
       <button class="cdz-btn cancel" id="cdzCancel" type="button">Cancel</button>
-      <button class="cdz-btn confirm" id="cdzConfirm" type="button">🚨 Confirm &amp; Escalate</button>
+      <button class="cdz-btn confirm" id="cdzConfirm" type="button">ðŸš¨ Confirm &amp; Escalate</button>
     </div>
   </div>
 </div>
@@ -1284,7 +1284,7 @@
   <div class="demo-panel-card">
     <div class="demo-panel-header">
       <div class="demo-panel-title" id="demoPanelTitle">
-        <span>⚡ Live Demo Controller</span>
+        <span>âš¡ Live Demo Controller</span>
         <span class="demo-panel-badge">Ctrl+Shift+D</span>
       </div>
       <button class="demo-panel-close" id="demoCloseBtn" aria-label="Close demo controller">&times;</button>
@@ -1297,7 +1297,7 @@
       <!-- Action 1: Citizen Report -->
       <button class="demo-action-btn" id="demoSimulateReportBtn" type="button">
         <div class="demo-action-left">
-          <div class="demo-action-icon">📢</div>
+          <div class="demo-action-icon">ðŸ“¢</div>
           <div class="demo-action-text">
             <span class="demo-action-name">Simulate Citizen Report</span>
             <span class="demo-action-sub">Drops an active waste report in Delhi &amp; alerts driver + command center</span>
@@ -1309,7 +1309,7 @@
       <!-- Action 2: Truck Movement -->
       <button class="demo-action-btn" id="demoSimulateTruckBtn" type="button">
         <div class="demo-action-left">
-          <div class="demo-action-icon">🚛</div>
+          <div class="demo-action-icon">ðŸš›</div>
           <div class="demo-action-text">
             <span class="demo-action-name">Simulate Truck Movement</span>
             <span class="demo-action-sub">Advances municipal vehicle GPS along dynamic collection route</span>
@@ -1321,7 +1321,7 @@
       <!-- Action 3: Driver Clean Action -->
       <button class="demo-action-btn" id="demoSimulateCleanBtn" type="button">
         <div class="demo-action-left">
-          <div class="demo-action-icon">🧹</div>
+          <div class="demo-action-icon">ðŸ§¹</div>
           <div class="demo-action-text">
             <span class="demo-action-name">Simulate Driver Clean Action</span>
             <span class="demo-action-sub">Driver clears next active hotspot: flips pin green &amp; updates KPIs</span>
@@ -1333,7 +1333,7 @@
       <!-- Action 4: Auto-Play Simulation -->
       <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.25);border-radius:12px;">
         <div style="display:flex;align-items:center;gap:10px;">
-          <span style="font-size:1.2rem;">⏱️</span>
+          <span style="font-size:1.2rem;">â±ï¸</span>
           <div>
             <div style="font-size:0.85rem;font-weight:700;color:#f8fafc;">Autonomous Demo Loop</div>
             <div style="font-size:0.72rem;color:#86efac;">Simulates city activity automatically every 6s</div>
@@ -1349,7 +1349,7 @@
       <!-- Action 5: Reset Demo Data -->
       <button class="demo-action-btn demo-reset-btn" id="demoResetBtn" type="button">
         <div class="demo-action-left">
-          <div class="demo-action-icon" style="background:rgba(239,68,68,0.15);color:#ef4444;">🔄</div>
+          <div class="demo-action-icon" style="background:rgba(239,68,68,0.15);color:#ef4444;">ðŸ”„</div>
           <div class="demo-action-text">
             <span class="demo-action-name">Reset Demo Data</span>
             <span class="demo-action-sub">Clears temporary reports &amp; resets city map to pristine baseline</span>
@@ -1359,7 +1359,7 @@
       </button>
     </div>
     <div class="demo-panel-footer">
-      <span>EcoRoute SIH 2026 · Smart Waste Management</span>
+      <span>EcoRoute SIH 2026 Â· Smart Waste Management</span>
       <span>Press <kbd style="background:rgba(255,255,255,0.1);padding:2px 6px;border-radius:4px;color:#f1f5f9;font-family:monospace;">Esc</kbd> to close</span>
     </div>
   </div>
@@ -1378,9 +1378,9 @@ import {
   AVG_ROUTE_KM_PER_TRUCK, FUEL_L_PER_KM, CO2_KG_PER_LITRE,
 } from './prediction.js';
 
-/* ══════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    AUTH GUARD
-══════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 const params = new URLSearchParams(window.location.search);
 let ADMIN = null;
 
@@ -1402,11 +1402,11 @@ if (ADMIN.full_name) {
     ADMIN.full_name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
 }
 
-/* ══════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    SEED DATA
-══════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 const SEED_HOTSPOTS = [
-  { id:'h01', name:'Connaught Place Market — Bin Overflow',  lat:28.63150, lng:77.21670, report_count:8,  is_chronic:true,  status:'reported', last_cleaned_at:null },
+  { id:'h01', name:'Connaught Place Market â€” Bin Overflow',  lat:28.63150, lng:77.21670, report_count:8,  is_chronic:true,  status:'reported', last_cleaned_at:null },
   { id:'h02', name:'Paharganj Market Back Alley',            lat:28.64380, lng:77.21280, report_count:10, is_chronic:true,  status:'reported', last_cleaned_at:null },
   { id:'h03', name:'Lajpat Nagar Main Market Rear',          lat:28.56810, lng:77.24340, report_count:7,  is_chronic:true,  status:'reported', last_cleaned_at:null },
   { id:'h04', name:'Malviya Nagar Veg Market Side',          lat:28.53800, lng:77.21200, report_count:6,  is_chronic:true,  status:'reported', last_cleaned_at:null },
@@ -1432,9 +1432,9 @@ const WASTE_PHOTOS = [
   'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&auto=format&fit=crop&q=60',
 ];
 
-/* ══════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    STATE
-══════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 let map         = null;
 let activeFilter = 'all';
 let hotspots    = JSON.parse(JSON.stringify(SEED_HOTSPOTS));
@@ -1448,18 +1448,18 @@ let truckMarker = null;
 let heatLayer   = null;
 let heatActive  = false;
 
-// Zone truck allocations: { zoneId -> trucks } — starts at defaults
+// Zone truck allocations: { zoneId -> trucks } â€” starts at defaults
 const zoneAlloc = Object.fromEntries(CITY_ZONES.map(z => [z.id, z.defaultTrucks]));
 
 const $ = id => document.getElementById(id);
 
-/* ══════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    TOAST
-══════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 let toastTimer = null;
 function showToast(title, sub, icon, isAlert) {
   clearTimeout(toastTimer);
-  $('toastIcon').textContent  = icon  || '🔔';
+  $('toastIcon').textContent  = icon  || 'ðŸ””';
   $('toastTitle').textContent = title || '';
   $('toastSub').textContent   = sub   || '';
   $('adminToast').classList.toggle('toast-red', !!isAlert);
@@ -1467,9 +1467,9 @@ function showToast(title, sub, icon, isAlert) {
   toastTimer = setTimeout(() => $('adminToast').classList.remove('show'), 4200);
 }
 
-/* ══════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    MAP INIT
-══════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 function initMap() {
   map = L.map('map', { zoomControl: true, attributionControl: false })
          .setView([28.6250, 77.2150], 13);
@@ -1479,12 +1479,12 @@ function initMap() {
     { maxZoom: 19 }
   ).addTo(map);
 
-  L.control.attribution({ position: 'bottomleft', prefix: '© Esri / MapmyIndia' }).addTo(map);
+  L.control.attribution({ position: 'bottomleft', prefix: 'Â© Esri / MapmyIndia' }).addTo(map);
 }
 
-/* ══════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    ICON BUILDERS
-══════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 function buildHotspotIcon(h, flash) {
   const cleaned  = h.status === 'cleaned';
   const chronic  = !cleaned && h.is_chronic;
@@ -1494,10 +1494,10 @@ function buildHotspotIcon(h, flash) {
 
   if (cleaned) {
     cls  += 'cleaned' + (flash ? ' just-cleaned' : '');
-    inner = '<div class="hpin-body">✓</div>';
+    inner = '<div class="hpin-body">âœ“</div>';
   } else if (chronic) {
     cls  += 'chronic';
-    inner = '<div class="hpin-body"><div class="chronic-ring"></div><div class="chronic-ring r2"></div>🚩</div>';
+    inner = '<div class="hpin-body"><div class="chronic-ring"></div><div class="chronic-ring r2"></div>ðŸš©</div>';
   } else {
     cls  += 'reported';
     inner = '<div class="hpin-body">!</div>';
@@ -1514,14 +1514,14 @@ function buildHotspotIcon(h, flash) {
 function buildTruckIcon() {
   return L.divIcon({
     className: 'truck-marker',
-    html: '<div class="truck-body"><div class="truck-wave"></div><div class="truck-wave w2"></div>🚛</div>',
+    html: '<div class="truck-body"><div class="truck-wave"></div><div class="truck-wave w2"></div>ðŸš›</div>',
     iconSize: [44,44], iconAnchor: [22,22],
   });
 }
 
-/* ══════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    POPUP BUILDER
-══════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 function timeAgo(ts) {
   if (!ts) return 'Not yet cleaned';
   const h = Math.round((Date.now() - new Date(ts).getTime()) / 3600000);
@@ -1535,9 +1535,9 @@ function buildPopup(h, idx) {
   const cleaned = h.status === 'cleaned';
   const photo   = h.photo_url || WASTE_PHOTOS[idx % WASTE_PHOTOS.length];
   const sB = cleaned
-    ? '<span class="pbadge cleaned">🟢 Cleaned</span>'
-    : '<span class="pbadge reported">🔴 Reported</span>';
-  const cB = h.is_chronic ? '<span class="pbadge chronic">🔥 Chronic</span>' : '';
+    ? '<span class="pbadge cleaned">ðŸŸ¢ Cleaned</span>'
+    : '<span class="pbadge reported">ðŸ”´ Reported</span>';
+  const cB = h.is_chronic ? '<span class="pbadge chronic">ðŸ”¥ Chronic</span>' : '';
   return `
     <div class="popup-card">
       <div class="popup-img-wrap">
@@ -1554,16 +1554,16 @@ function buildPopup(h, idx) {
     </div>`;
 }
 
-/* ══════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    TRUCK MARKER
-══════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 function renderTruck() {
   if (!map) return;
   const t = truckData;
   const pop = `
     <div class="popup-card">
       <div class="popup-badges">
-        <span class="pbadge cleaned">🟢 On Duty</span>
+        <span class="pbadge cleaned">ðŸŸ¢ On Duty</span>
         <span class="pbadge" style="background:rgba(56,189,248,.15);color:#7dd3fc;border:1px solid rgba(56,189,248,.3);">${t.truck_id || 'TRUCK-104'}</span>
       </div>
       <div class="popup-title">${t.driver_name || 'Suresh Yadav'}</div>
@@ -1582,9 +1582,9 @@ function renderTruck() {
   }
 }
 
-/* ══════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    RENDER PINS
-══════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 function renderPins() {
   if (!map) return;
   markerMap.forEach(m => map.removeLayer(m));
@@ -1609,9 +1609,9 @@ function renderPins() {
   updatePanel2();
 }
 
-/* ══════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    KPIs
-══════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 function updateKPIs() {
   const actCnt = hotspots.filter(h => h.status === 'reported').length;
   const clnCnt = hotspots.filter(h => h.status === 'cleaned').length;
@@ -1638,9 +1638,9 @@ function flashKPI(...ids) {
   });
 }
 
-/* ══════════════════════════════════════════
-   PANEL 2 — FULL PREDICTION + FLEET
-══════════════════════════════════════════ */
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   PANEL 2 â€” FULL PREDICTION + FLEET
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
 // Animated number update with flip animation
 function setAnimNum(id, newVal, decimals) {
@@ -1694,7 +1694,7 @@ function renderZoneCards(zoneRisks) {
         <div class="zone-stepper">
           <button class="stepper-btn" id="zdec-${zone.id}" type="button"
             title="Reduce trucks in ${zone.name}"
-            ${trucks <= minTruck ? 'disabled' : ''}>−</button>
+            ${trucks <= minTruck ? 'disabled' : ''}>âˆ’</button>
           <span class="stepper-val" id="zval-${zone.id}">${trucks}</span>
           <button class="stepper-btn" id="zinc-${zone.id}" type="button"
             title="Add truck to ${zone.name}"
@@ -1736,7 +1736,7 @@ function renderTop5(scoredHotspots) {
   const badge     = $('p2ForecastBadge');
   if (badge) {
     const maxScore = top5[0] ? top5[0].score : 0;
-    badge.textContent = maxScore >= 0.65 ? '⚠ HIGH RISK' : maxScore >= 0.38 ? 'MEDIUM' : 'LOW';
+    badge.textContent = maxScore >= 0.65 ? 'âš  HIGH RISK' : maxScore >= 0.38 ? 'MEDIUM' : 'LOW';
     badge.className   = 'ic-badge ' + (maxScore >= 0.65 ? 'high' : maxScore >= 0.38 ? 'medium' : 'active');
   }
 
@@ -1766,7 +1766,7 @@ function updatePanel2() {
   if (heatActive && map) refreshHeatmap(scored);
 }
 
-/* ── Heatmap helpers ─────────────────────────────── */
+/* â”€â”€ Heatmap helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function refreshHeatmap(scoredHotspots) {
   const pts = buildHeatData(scoredHotspots);
   if (heatLayer) {
@@ -1786,7 +1786,7 @@ function removeHeatmap() {
   if (heatLayer && map) { map.removeLayer(heatLayer); heatLayer = null; }
 }
 
-/* ── Formula tooltip ────────────────────────────── */
+/* â”€â”€ Formula tooltip â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function initFormulaTooltip() {
   const btn   = $('formulaBtn');
   const popup = $('formulaPopup');
@@ -1800,7 +1800,7 @@ function initFormulaTooltip() {
   document.addEventListener('click', () => popup.classList.remove('show'));
 }
 
-/* ── Heatmap toggle ─────────────────────────────── */
+/* â”€â”€ Heatmap toggle â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function initHeatToggle() {
   const toggle = $('heatToggle'); if (!toggle) return;
   toggle.addEventListener('change', () => {
@@ -1814,9 +1814,9 @@ function initHeatToggle() {
   });
 }
 
-/* ══════════════════════════════════════════
-   FLIP PIN RED → GREEN
-══════════════════════════════════════════ */
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   FLIP PIN RED â†’ GREEN
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 function flipHotspotToCleaned(hotspotId, hotspotName) {
   let h = hotspots.find(x => x.id === hotspotId);
 
@@ -1850,16 +1850,16 @@ function flipHotspotToCleaned(hotspotId, hotspotName) {
   updateKPIs();
   updatePanel2();
   addFeedItem('Cleaned: ' + h.name, 'cleaned', 'Municipal vehicle cleared site');
-  showToast('Pin turned green! 🟢', '"' + h.name + '" was cleaned by truck', '✅');
+  showToast('Pin turned green! ðŸŸ¢', '"' + h.name + '" was cleaned by truck', 'âœ…');
 }
 
-/* ══════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    NEW CITIZEN REPORT
-══════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 function handleNewReport(report) {
   totalReportsCount++;
   newEventsCount++;
-  $('feedMeta').textContent = 'Realtime updates · ' + newEventsCount + ' new';
+  $('feedMeta').textContent = 'Realtime updates Â· ' + newEventsCount + ' new';
 
   if (report.lat && report.lng) {
     const nh = {
@@ -1886,27 +1886,27 @@ function handleNewReport(report) {
 
   updateKPIs();
   addFeedItem('New citizen report: ' + (report.description || 'Garbage dump spotted'), 'reported');
-  showToast('New Citizen Report', report.description || 'Garbage dump spotted near Delhi', '🚨', true);
+  showToast('New Citizen Report', report.description || 'Garbage dump spotted near Delhi', 'ðŸš¨', true);
 }
 
-/* ══════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    TRUCK POSITION UPDATE
-══════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 function updateTruckPosition(lat, lng, driverName) {
   truckData = { ...truckData, lat, lng, driver_name: driverName || truckData.driver_name, updated_at: new Date().toISOString() };
   renderTruck();
   addFeedItem('Truck #104 moved to ' + lat.toFixed(4) + ', ' + lng.toFixed(4), 'truck');
 }
 
-/* ══════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    FEED (kept for Panel 3 overflow events)
-══════════════════════════════════════════ */
-function addFeedItem() {} // feed removed — Panel 3 is now the Chronic Manager
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+function addFeedItem() {} // feed removed â€” Panel 3 is now the Chronic Manager
 function seedFeed() {}
 
-/* ══════════════════════════════════════════
-   PANEL 3 — CHRONIC DUMP ZONE MANAGER
-══════════════════════════════════════════ */
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   PANEL 3 â€” CHRONIC DUMP ZONE MANAGER
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
 // Minimum report count to be a candidate
 const CANDIDATE_THRESHOLD = 3;
@@ -1918,14 +1918,14 @@ let p3SortCol   = 'report_count';
 let p3SortDir   = 'desc';      // 'asc' | 'desc'
 let p3PendingId = null;        // hotspot id waiting for confirmation
 
-/* ─ Helpers ─────────────────────────────────────── */
+/* â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 function isCandidate(h) {
   return !h.is_chronic && (h.report_count || 0) >= CANDIDATE_THRESHOLD;
 }
 
 function timeAgoShort(ts) {
-  if (!ts) return '—';
+  if (!ts) return 'â€”';
   const mins = Math.round((Date.now() - new Date(ts).getTime()) / 60000);
   if (mins < 1)  return 'Just now';
   if (mins < 60) return mins + 'm ago';
@@ -1935,13 +1935,13 @@ function timeAgoShort(ts) {
 }
 
 function statusBadge(h) {
-  if (h.is_chronic) return `<span class="zbadge chronic">🔴 Chronic</span>`;
-  if (isCandidate(h)) return `<span class="zbadge candidate">🟡 Candidate</span>`;
-  if (h.status === 'cleaned') return `<span class="zbadge cleaned">✅ Cleaned</span>`;
-  return `<span class="zbadge reported">⚠️ Reported</span>`;
+  if (h.is_chronic) return `<span class="zbadge chronic">ðŸ”´ Chronic</span>`;
+  if (isCandidate(h)) return `<span class="zbadge candidate">ðŸŸ¡ Candidate</span>`;
+  if (h.status === 'cleaned') return `<span class="zbadge cleaned">âœ… Cleaned</span>`;
+  return `<span class="zbadge reported">âš ï¸ Reported</span>`;
 }
 
-/* ─ Filter + sort ──────────────────────────────── */
+/* â”€ Filter + sort â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 function filteredHotspots() {
   const q = p3Search.trim().toLowerCase();
@@ -1985,7 +1985,7 @@ function statusLabel(h) {
   return h.status || 'reported';
 }
 
-/* ─ Tab counts ────────────────────────────────── */
+/* â”€ Tab counts â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 function updateTabCounts() {
   const candidates = hotspots.filter(isCandidate).length;
@@ -1993,10 +1993,10 @@ function updateTabCounts() {
   $('tab-count-all').textContent       = hotspots.length;
   $('tab-count-candidates').textContent = candidates;
   $('tab-count-chronic').textContent   = chronics;
-  $('p3Meta').textContent = `${chronics} chronic · ${candidates} candidate${candidates !== 1 ? 's' : ''}`;
+  $('p3Meta').textContent = `${chronics} chronic Â· ${candidates} candidate${candidates !== 1 ? 's' : ''}`;
 }
 
-/* ─ Render table ──────────────────────────────── */
+/* â”€ Render table â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 function renderP3Table() {
   updateTabCounts();
@@ -2025,9 +2025,9 @@ function renderP3Table() {
     // Action button
     let actionBtn = '';
     if (isChronic) {
-      actionBtn = `<button class="mark-btn unmark-chronic" onclick="event.stopPropagation();initiateUnmark('${h.id}')" title="Remove chronic designation">↩ Unmark</button>`;
+      actionBtn = `<button class="mark-btn unmark-chronic" onclick="event.stopPropagation();initiateUnmark('${h.id}')" title="Remove chronic designation">â†© Unmark</button>`;
     } else if (isCandidate_) {
-      actionBtn = `<button class="mark-btn mark-chronic" onclick="event.stopPropagation();initiateMarkChronic('${h.id}')" title="Escalate to chronic zone">🚨 Mark as Chronic Zone</button>`;
+      actionBtn = `<button class="mark-btn mark-chronic" onclick="event.stopPropagation();initiateMarkChronic('${h.id}')" title="Escalate to chronic zone">ðŸš¨ Mark as Chronic Zone</button>`;
     } else {
       actionBtn = `<span style="color:#334155;font-size:.67rem;">Below threshold</span>`;
     }
@@ -2050,7 +2050,7 @@ function renderP3Table() {
   }).join('');
 }
 
-/* ─ Sort on header click ──────────────────────── */
+/* â”€ Sort on header click â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function initTableSort() {
   document.querySelectorAll('#p3Table thead th[data-col]').forEach(th => {
     th.addEventListener('click', () => {
@@ -2066,7 +2066,7 @@ function initTableSort() {
   });
 }
 
-/* ─ Confirmation modal ──────────────────────── */
+/* â”€ Confirmation modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function showConfirmModal(hotspotId) {
   const h = hotspots.find(x => x.id === hotspotId);
   if (!h) return;
@@ -2097,7 +2097,7 @@ function initModal() {
   });
 }
 
-/* ─ Mark / Unmark chronic ────────────────────── */
+/* â”€ Mark / Unmark chronic â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 window.initiateMarkChronic = function(id) {
   showConfirmModal(id);
@@ -2131,9 +2131,9 @@ async function executeMarkChronic(id) {
   const row = document.querySelector(`#p3Tbody tr[data-id="${id}"]`);
   if (row) { row.classList.add('row-flash'); setTimeout(() => row.classList.remove('row-flash'), 800); }
 
-  showToast('🚨 Chronic Zone Escalated', `"${h.name}" — driver route updated live`, '🔴');
+  showToast('ðŸš¨ Chronic Zone Escalated', `"${h.name}" â€” driver route updated live`, 'ðŸ”´');
 
-  // (b) Broadcast to driver app — it will add to its route
+  // (b) Broadcast to driver app â€” it will add to its route
   broadcastChronicUpdate(h, true);
 
   // Persist to Supabase (best-effort)
@@ -2161,7 +2161,7 @@ async function executeUnmarkChronic(id) {
   updateKPIs();
   updatePanel2();
 
-  showToast('ℹ️ Zone Downgraded', `"${h.name}" removed from chronic list`, '🔵');
+  showToast('â„¹ï¸ Zone Downgraded', `"${h.name}" removed from chronic list`, 'ðŸ”µ');
   broadcastChronicUpdate(h, false);
 
   try {
@@ -2171,7 +2171,7 @@ async function executeUnmarkChronic(id) {
   }
 }
 
-/* ─ Broadcast to driver app ──────────────────── */
+/* â”€ Broadcast to driver app â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function broadcastChronicUpdate(h, isChronic) {
   const payload = {
     type:       'CHRONIC_UPDATE',
@@ -2200,7 +2200,7 @@ function broadcastChronicUpdate(h, isChronic) {
   } catch (e) { /* storage unavailable */ }
 }
 
-/* ─ Init Panel 3 ─────────────────────────────── */
+/* â”€ Init Panel 3 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function initChronicManager() {
   // Tab clicks
   document.querySelectorAll('.p3-tab').forEach(btn => {
@@ -2223,9 +2223,9 @@ function initChronicManager() {
   renderP3Table();
 }
 
-/* ══════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    GLOBAL FOCUS (called from Panel 2 rows)
-══════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 window.focusHotspot = function(id) {
   const marker = markerMap.get(id);
   if (marker && map) {
@@ -2234,9 +2234,9 @@ window.focusHotspot = function(id) {
   }
 };
 
-/* ══════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    DB FETCH (with 2.5s timeout fallback)
-══════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 async function fetchFromDB() {
   try {
     await Promise.race([
@@ -2267,9 +2267,9 @@ async function fetchFromDB() {
   renderTruck();
 }
 
-/* ══════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    REALTIME SUBSCRIPTIONS
-══════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 function setupRealtime() {
   /* 1. Supabase Postgres Changes */
   try {
@@ -2288,7 +2288,7 @@ function setupRealtime() {
         if (!row) return;
         hotspots.unshift(row);
         renderPins();
-        showToast('New Hotspot', row.name, '⚠️', true);
+        showToast('New Hotspot', row.name, 'âš ï¸', true);
       })
       .subscribe(status => {
         const pill = $('livePill');
@@ -2297,7 +2297,7 @@ function setupRealtime() {
           $('liveStatusText').textContent = 'LIVE TELEMETRY';
         } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
           pill.classList.add('disconnected');
-          $('liveStatusText').textContent = 'RECONNECTING…';
+          $('liveStatusText').textContent = 'RECONNECTINGâ€¦';
         }
       });
 
@@ -2316,7 +2316,7 @@ function setupRealtime() {
     console.warn('[admin] Supabase realtime:', e);
   }
 
-  /* 2. BroadcastChannel — zero-latency cross-tab (driver app) */
+  /* 2. BroadcastChannel â€” zero-latency cross-tab (driver app) */
   try {
     const bc = new BroadcastChannel('ecoroute-sync');
     bc.addEventListener('message', ev => {
@@ -2327,7 +2327,7 @@ function setupRealtime() {
       else if (d.type === 'NEW_REPORT')  handleNewReport(d.report || {});
       // Driver acknowledges receiving a chronic update (informational)
       else if (d.type === 'CHRONIC_ACK') {
-        showToast('🚛 Route Updated', `Driver received: "${d.name}" added to route`, '✅');
+        showToast('ðŸš› Route Updated', `Driver received: "${d.name}" added to route`, 'âœ…');
       }
     });
   } catch (e) { /* unavailable */ }
@@ -2346,9 +2346,9 @@ function setupRealtime() {
   });
 }
 
-/* ══════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    UI EVENTS
-══════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 // Filter chips
 document.querySelectorAll('.filter-chip').forEach(chip => {
   chip.addEventListener('click', () => {
@@ -2385,9 +2385,9 @@ document.querySelectorAll('.nav-item').forEach(item => {
 // Logout
 $('logoutBtn').addEventListener('click', () => logout());
 
-/* ══════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    DEMO CONTROLS (Ctrl+Shift+D)
-══════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 function initDemoControls() {
   const overlay        = $('demoPanelOverlay');
   const closeBtn       = $('demoCloseBtn');
@@ -2468,7 +2468,7 @@ function initDemoControls() {
       bc.close();
     } catch {}
 
-    showToast('📢 Citizen Report Simulated', rep.description, '🚨', true);
+    showToast('ðŸ“¢ Citizen Report Simulated', rep.description, 'ðŸš¨', true);
   }
 
   // 2. Simulate Truck Movement
@@ -2502,14 +2502,14 @@ function initDemoControls() {
       bc.close();
     } catch {}
 
-    showToast('🚛 Truck #104 En Route', `Dispatched to ${wp.name}`, '📍');
+    showToast('ðŸš› Truck #104 En Route', `Dispatched to ${wp.name}`, 'ðŸ“');
   }
 
   // 3. Simulate Driver Clean Action
   function simulateDriverClean() {
     const active = hotspots.find(h => h.status === 'reported');
     if (!active) {
-      showToast('ℹ️ All Clear', 'No active reported dumps remaining to clean!', '🌟');
+      showToast('â„¹ï¸ All Clear', 'No active reported dumps remaining to clean!', 'ðŸŒŸ');
       return;
     }
 
@@ -2538,7 +2538,7 @@ function initDemoControls() {
       bc.close();
     } catch {}
 
-    showToast('🧹 Cleaned by Driver', `"${active.name}" marked cleaned!`, '✅');
+    showToast('ðŸ§¹ Cleaned by Driver', `"${active.name}" marked cleaned!`, 'âœ…');
   }
 
   // 4. Reset Demo Data
@@ -2570,7 +2570,7 @@ function initDemoControls() {
       bc.close();
     } catch {}
 
-    showToast('🔄 Demo Data Reset', 'All maps, KPIs and logs restored to baseline state', '✨');
+    showToast('ðŸ”„ Demo Data Reset', 'All maps, KPIs and logs restored to baseline state', 'âœ¨');
   }
 
   if (simReportBtn) simReportBtn.addEventListener('click', simulateCitizenReport);
@@ -2584,7 +2584,7 @@ function initDemoControls() {
   if (autoLoopToggle) {
     autoLoopToggle.addEventListener('change', () => {
       if (autoLoopToggle.checked) {
-        showToast('🚀 Autonomous Loop Started', 'Events triggering every 6 seconds', '🤖');
+        showToast('ðŸš€ Autonomous Loop Started', 'Events triggering every 6 seconds', 'ðŸ¤–');
         autoLoopTimer = setInterval(() => {
           autoLoopStep = (autoLoopStep + 1) % 3;
           if (autoLoopStep === 0) simulateCitizenReport();
@@ -2594,15 +2594,15 @@ function initDemoControls() {
       } else {
         clearInterval(autoLoopTimer);
         autoLoopTimer = null;
-        showToast('⏹️ Autonomous Loop Stopped', 'Manual simulation mode active', '⏸️');
+        showToast('â¹ï¸ Autonomous Loop Stopped', 'Manual simulation mode active', 'â¸ï¸');
       }
     });
   }
 }
 
-/* ══════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    BOOTSTRAP
-══════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 initMap();
 seedFeed();
 await fetchFromDB();
@@ -2611,7 +2611,7 @@ initFormulaTooltip();
 initHeatToggle();
 initChronicManager();
 initDemoControls();
-showToast('Command Center Online', 'All systems connected · Live telemetry active', '🌿');
+showToast('Command Center Online', 'All systems connected Â· Live telemetry active', 'ðŸŒ¿');
 </script>
 
 <!-- PWA Service Worker Registration -->

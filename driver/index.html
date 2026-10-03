@@ -1,18 +1,18 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>EcoRoute — Driver Route Console</title>
+  <title>EcoRoute â€” Driver Route Console</title>
   <meta name="description" content="High-contrast route navigation and stop cleanup console for municipal waste collection drivers." />
-  <link rel="manifest" href="/manifest.json" />
+  <link rel="manifest" href="../manifest.json" />
   <meta name="theme-color" content="#16a34a" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="EcoRoute Driver" />
-  <link rel="apple-touch-icon" href="/assets/icons/icon-192.png" />
-  <link rel="icon" type="image/png" sizes="48x48" href="/assets/icons/favicon.png" />
-  <link rel="icon" type="image/svg+xml" href="/assets/icons/icon.svg" />
+  <link rel="apple-touch-icon" href="../assets/icons/icon-192.png" />
+  <link rel="icon" type="image/png" sizes="48x48" href="../assets/icons/favicon.png" />
+  <link rel="icon" type="image/svg+xml" href="../assets/icons/icon.svg" />
   <link rel="stylesheet" href="../shared/theme.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
@@ -48,7 +48,7 @@
       width: 100%; height: 100%; background: #060d07;
     }
 
-    /* ── TOP HUD BAR ─────────────────────────────────────── */
+    /* â”€â”€ TOP HUD BAR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
     .top-hud {
       position: absolute; top: 12px; left: 12px; right: 12px; z-index: 1000;
       display: flex; align-items: center; justify-content: space-between;
@@ -143,7 +143,7 @@
     .recenter-btn:active { transform: scale(0.95); }
     .recenter-btn svg { width: 22px; height: 22px; }
 
-    /* ── FLOATING NEXT STOP CARD (PINNED BOTTOM) ──────────── */
+    /* â”€â”€ FLOATING NEXT STOP CARD (PINNED BOTTOM) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
     .next-stop-container {
       position: absolute; bottom: 16px; left: 16px; right: 16px;
       z-index: 1000; max-width: 540px; margin: 0 auto;
@@ -279,7 +279,7 @@
       border-radius: 16px; font-size: 1rem; font-weight: 800; cursor: pointer;
     }
 
-    /* ── CUSTOM LEAFLET MARKERS ──────────────────────────── */
+    /* â”€â”€ CUSTOM LEAFLET MARKERS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
     .stop-marker {
       background: transparent; border: none;
     }
@@ -358,7 +358,7 @@
   <!-- Auth Guard Loader -->
   <div id="guardLoader">
     <div class="spinner spinner--lg"></div>
-    <p>Connecting to Municipal Route Dispatch…</p>
+    <p>Connecting to Municipal Route Dispatchâ€¦</p>
   </div>
 
   <!-- Fullscreen Map -->
@@ -370,7 +370,7 @@
   <header class="top-hud">
     <div class="hud-left">
       <div class="hud-brand">
-        <div class="hud-logo-icon">🚛</div>
+        <div class="hud-logo-icon">ðŸš›</div>
         <span class="hud-title">EcoRoute</span>
         <div class="gps-status-dot" title="GPS Tracking Active"></div>
       </div>
@@ -381,7 +381,7 @@
         <span class="num" id="stopsLeftCount">0</span>
       </div>
       <button class="sim-toggle-btn" id="simDrivingBtn" title="Simulate driving along route for demo" type="button">
-        <span>⚡ Sim Drive</span>
+        <span>âš¡ Sim Drive</span>
       </button>
       <button class="hud-icon-btn" id="logoutBtn" title="Sign Out" type="button" aria-label="Sign Out">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
@@ -406,17 +406,17 @@
       <div class="stop-header-row">
         <div class="stop-tag-wrap">
           <span class="stop-order-chip" id="stopOrderChip">Stop 1</span>
-          <span class="stop-type-badge chronic" id="stopTypeBadge">🔥 Chronic</span>
+          <span class="stop-type-badge chronic" id="stopTypeBadge">ðŸ”¥ Chronic</span>
         </div>
         <div class="stop-distance-eta" id="stopDistanceEta">
-          <span>📍 <strong class="highlight" id="nextStopDist">— m</strong></span>
+          <span>ðŸ“ <strong class="highlight" id="nextStopDist">â€” m</strong></span>
           <span>&bull;</span>
-          <span>⏱️ <strong class="highlight" id="nextStopEta">— mins</strong></span>
+          <span>â±ï¸ <strong class="highlight" id="nextStopEta">â€” mins</strong></span>
         </div>
       </div>
 
       <div class="stop-name-title" id="nextStopName">
-        Loading today's collection route…
+        Loading today's collection routeâ€¦
       </div>
 
       <!-- Giant Touch Target Action Button (min 64px height) -->
@@ -430,7 +430,7 @@
 
     <!-- Route Completed View -->
     <div class="route-complete-card" id="routeCompleteCard">
-      <div class="complete-icon">🎉</div>
+      <div class="complete-icon">ðŸŽ‰</div>
       <div class="complete-title">All Dumps Cleaned!</div>
       <div class="complete-sub">Today's collection route is 100% complete. All community reporters have received trust score rewards.</div>
       <button class="btn-return-depot" id="returnDepotBtn" type="button">Return to Municipal Depot</button>
@@ -451,7 +451,7 @@ import {
   haversineDistance
 } from './route.js';
 
-// ── Role Guard ───────────────────────────────────────────────
+// â”€â”€ Role Guard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const urlParams = new URLSearchParams(window.location.search);
 let profile = null;
 if (urlParams.get('demo') === '1' || urlParams.get('demo') === 'true') {
@@ -473,7 +473,7 @@ const DRIVER = profile;
 
 document.getElementById('guardLoader').classList.add('hidden');
 
-// ── State Variables ──────────────────────────────────────────
+// â”€â”€ State Variables â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 let map = null;
 let truckMarker = null;
 let currentCoords = { lat: 28.6250, lng: 77.2150 }; // Default initial location
@@ -510,7 +510,7 @@ function showToast(msg) {
   toastTimer = setTimeout(() => toastEl.classList.remove('show'), 3000);
 }
 
-// ── Map Initialization with Dark Matter Tiles ────────────────
+// â”€â”€ Map Initialization with Dark Matter Tiles â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function initMap(initialLat, initialLng) {
   map = L.map('map', {
     zoomControl: false,
@@ -529,7 +529,7 @@ function initMap(initialLat, initialLng) {
     html: `
       <div class="driver-truck-inner">
         <div class="truck-radar-wave"></div>
-        🚛
+        ðŸš›
       </div>
     `,
     iconSize: [48, 48],
@@ -542,7 +542,7 @@ function initMap(initialLat, initialLng) {
   }).addTo(map);
 }
 
-// ── Upsert Truck Location to Database (every 3-5s) ───────────
+// â”€â”€ Upsert Truck Location to Database (every 3-5s) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function updateTruckLocationInDb(lat, lng) {
   const now = Date.now();
   if (now - lastGpsUpsertTime < 3000) return;
@@ -588,7 +588,7 @@ function updateTruckMarkerPosition(lat, lng) {
   updateDistanceToActiveStop();
 }
 
-// ── GPS Tracking via watchPosition ───────────────────────────
+// â”€â”€ GPS Tracking via watchPosition â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function startGpsTracking() {
   if (!navigator.geolocation) {
     console.warn('Geolocation not supported, using default driver location');
@@ -608,7 +608,7 @@ function startGpsTracking() {
   );
 }
 
-// ── Calculate Distance & ETA to Current Stop ─────────────────
+// â”€â”€ Calculate Distance & ETA to Current Stop â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function updateDistanceToActiveStop() {
   const currentStop = routeStops[activeStopIndex];
   if (!currentStop) return;
@@ -631,7 +631,7 @@ function updateDistanceToActiveStop() {
   nextStopEta.textContent  = '~' + etaMins + ' mins';
 }
 
-// ── Route & Stops Rendering ──────────────────────────────────
+// â”€â”€ Route & Stops Rendering â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function clearRouteGraphics() {
   routePolylines.forEach(p => map.removeLayer(p));
   routePolylines = [];
@@ -665,7 +665,7 @@ async function renderRoute() {
     if (isCurrent) markerClass += ' current';
     if (stop.is_chronic) markerClass += ' chronic';
 
-    const displayNum = isCleaned ? '✓' : (idx + 1);
+    const displayNum = isCleaned ? 'âœ“' : (idx + 1);
 
     const icon = L.divIcon({
       className: markerClass,
@@ -678,7 +678,7 @@ async function renderRoute() {
     marker.bindPopup(`
       <div style="color:#0f172a; font-family:sans-serif; padding:4px;">
         <strong>Stop #${idx + 1}: ${stop.name}</strong><br/>
-        <span style="font-size:0.75rem; color:#64748b;">${stop.is_chronic ? '🔥 Chronic Hotspot' : '📋 Citizen Report'}</span>
+        <span style="font-size:0.75rem; color:#64748b;">${stop.is_chronic ? 'ðŸ”¥ Chronic Hotspot' : 'ðŸ“‹ Citizen Report'}</span>
       </div>
     `);
 
@@ -716,17 +716,17 @@ async function renderRoute() {
 
   if (currentStop.is_chronic) {
     stopTypeBadge.className = 'stop-type-badge chronic';
-    stopTypeBadge.innerHTML = '🔥 Chronic';
+    stopTypeBadge.innerHTML = 'ðŸ”¥ Chronic';
   } else {
     stopTypeBadge.className = 'stop-type-badge report';
-    stopTypeBadge.innerHTML = '📋 Citizen Report';
+    stopTypeBadge.innerHTML = 'ðŸ“‹ Citizen Report';
   }
 
   nextStopName.textContent = currentStop.name;
   updateDistanceToActiveStop();
 }
 
-// ── Re-compute Route from Scratch ────────────────────────────
+// â”€â”€ Re-compute Route from Scratch â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function loadAndComputeRoute(maintainCurrent = false) {
   rawStops = await fetchDailyStops(supabase);
 
@@ -759,7 +759,7 @@ async function loadAndComputeRoute(maintainCurrent = false) {
   }
 }
 
-// ── Mark Hotspot Cleaned Action ──────────────────────────────
+// â”€â”€ Mark Hotspot Cleaned Action â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function handleMarkCleaned() {
   const currentStop = routeStops[activeStopIndex];
   if (!currentStop) return;
@@ -771,7 +771,7 @@ async function handleMarkCleaned() {
 
   nextStopCard.classList.add('flash-success');
   markCleanedBtn.classList.add('cleaned-flash');
-  markCleanedText.textContent = 'CLEANED! 🎉';
+  markCleanedText.textContent = 'CLEANED! ðŸŽ‰';
 
   // 2. Broadcast instant cross-tab sync event (for live Admin command center)
   try {
@@ -825,10 +825,10 @@ async function handleMarkCleaned() {
         .eq('hotspot_id', currentStop.id);
     }
 
-    showToast('✨ Cleaned! Reporters awarded +10 trust points.');
+    showToast('âœ¨ Cleaned! Reporters awarded +10 trust points.');
   } catch (err) {
     console.warn('[driver] Network update warning:', err);
-    showToast('✨ Cleaned (Offline Demo mode).');
+    showToast('âœ¨ Cleaned (Offline Demo mode).');
   }
 
   // 3. Auto-advance to next stop
@@ -850,13 +850,13 @@ async function handleMarkCleaned() {
 
 markCleanedBtn.addEventListener('click', handleMarkCleaned);
 
-// ── Simulation Toggle (Demo Driving along Route) ──────────────
+// â”€â”€ Simulation Toggle (Demo Driving along Route) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function toggleSimulation() {
   isSimulationActive = !isSimulationActive;
   simDrivingBtn.classList.toggle('active', isSimulationActive);
 
   if (isSimulationActive) {
-    showToast('⚡ Simulation active: Truck moving along route');
+    showToast('âš¡ Simulation active: Truck moving along route');
     let stepIndex = 0;
     const remainingStops = routeStops.slice(activeStopIndex);
     if (remainingStops.length === 0) return;
@@ -876,7 +876,7 @@ function toggleSimulation() {
 
       const remainingDistM = haversineDistance(newLat, newLng, target.lat, target.lng) * 1000;
       if (remainingDistM < 40) {
-        showToast(`📍 Arrived at Stop #${activeStopIndex + 1}: ${target.name}`);
+        showToast(`ðŸ“ Arrived at Stop #${activeStopIndex + 1}: ${target.name}`);
       }
     }, 1500);
   } else {
@@ -888,23 +888,23 @@ function toggleSimulation() {
 
 simDrivingBtn.addEventListener('click', toggleSimulation);
 
-// ── Recenter Button ──────────────────────────────────────────
+// â”€â”€ Recenter Button â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 recenterBtn.addEventListener('click', () => {
   if (map && currentCoords) {
     map.flyTo([currentCoords.lat, currentCoords.lng], 16, { duration: 0.8 });
   }
 });
 
-// ── Return to Depot Button ───────────────────────────────────
+// â”€â”€ Return to Depot Button â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 document.getElementById('returnDepotBtn').addEventListener('click', () => {
   showToast('Route complete! Returning to Depot.');
   if (map) map.flyTo([28.6139, 77.2090], 14, { duration: 1 });
 });
 
-// ── Logout ───────────────────────────────────────────────────
+// â”€â”€ Logout â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 logoutBtn.addEventListener('click', () => logout());
 
-// ── Realtime Subscriptions (Auto-recompute route on new reports)
+// â”€â”€ Realtime Subscriptions (Auto-recompute route on new reports)
 function subscribeRealtimeUpdates() {
   // Listen for newly verified reports
   supabase.channel('driver-reports-stream')
@@ -914,7 +914,7 @@ function subscribeRealtimeUpdates() {
       table: 'reports'
     }, payload => {
       if (payload.new && payload.new.status === 'verified') {
-        showToast('🔔 New verified report received! Updating route…');
+        showToast('ðŸ”” New verified report received! Updating routeâ€¦');
         loadAndComputeRoute(true);
       }
     })
@@ -924,7 +924,7 @@ function subscribeRealtimeUpdates() {
       table: 'reports'
     }, payload => {
       if (payload.new && payload.new.status === 'verified') {
-        showToast('🔔 Report verified! Adding to collection route…');
+        showToast('ðŸ”” Report verified! Adding to collection routeâ€¦');
         loadAndComputeRoute(true);
       }
     })
@@ -938,14 +938,14 @@ function subscribeRealtimeUpdates() {
       table: 'hotspots'
     }, payload => {
       if (payload.new && payload.new.is_chronic) {
-        showToast('🔥 Chronic zone flagged! Prioritizing route…');
+        showToast('ðŸ”¥ Chronic zone flagged! Prioritizing routeâ€¦');
         loadAndComputeRoute(true);
       }
     })
     .subscribe();
 }
 
-// ── App Startup ──────────────────────────────────────────────
+// â”€â”€ App Startup â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 // BroadcastChannel listener (cross-tab, from Admin Command Center)
 function subscribeBroadcastChannel() {
@@ -960,15 +960,15 @@ function subscribeBroadcastChannel() {
         if (!hotspot || !hotspot.id) return;
 
         if (hotspot.is_chronic === false) {
-          // Unmark — remove from route and reload
-          showToast('ℹ️ "' + (hotspot.name || 'Zone') + '" removed from chronic priority');
+          // Unmark â€” remove from route and reload
+          showToast('â„¹ï¸ "' + (hotspot.name || 'Zone') + '" removed from chronic priority');
           routeStops = routeStops.filter(s => s.id !== hotspot.id);
           renderRoute();
           return;
         }
 
-        // Mark as chronic — inject into route
-        showToast('🔥 Chronic Zone: "' + (hotspot.name || 'New Zone') + '" added to your route!');
+        // Mark as chronic â€” inject into route
+        showToast('ðŸ”¥ Chronic Zone: "' + (hotspot.name || 'New Zone') + '" added to your route!');
 
         const newStop = {
           id:           hotspot.id,
@@ -988,7 +988,7 @@ function subscribeBroadcastChannel() {
         // Flash MARK AS CLEANED button red to alert driver
         markCleanedBtn.style.transition = 'background 0.2s';
         markCleanedBtn.style.background = '#dc2626';
-        markCleanedText.textContent = '🔴 NEW CHRONIC STOP ADDED';
+        markCleanedText.textContent = 'ðŸ”´ NEW CHRONIC STOP ADDED';
         setTimeout(() => {
           markCleanedBtn.style.background = '';
           markCleanedText.textContent = 'MARK AS CLEANED';
@@ -1002,12 +1002,12 @@ function subscribeBroadcastChannel() {
         } catch (e) {}
 
       } else if (d.type === 'UNCHRONIC_UPDATE') {
-        showToast('ℹ️ "' + (d.name || 'Zone') + '" removed from chronic priority');
+        showToast('â„¹ï¸ "' + (d.name || 'Zone') + '" removed from chronic priority');
         loadAndComputeRoute(true);
       } else if (d.type === 'RESET_DEMO') {
         localStorage.removeItem('ecoroute_cleaned_hotspots');
         activeStopIndex = 0;
-        showToast('✨ Route reset to baseline');
+        showToast('âœ¨ Route reset to baseline');
         loadAndComputeRoute(false);
       } else if (d.type === 'TRUCK_MOVED' && d.lat && d.lng) {
         currentCoords = { lat: d.lat, lng: d.lng };
@@ -1025,7 +1025,7 @@ function subscribeBroadcastChannel() {
       try {
         const d = JSON.parse(e.newValue);
         if (d && d.hotspot_id && !routeStops.some(s => s.id === d.hotspot_id)) {
-          showToast('🔥 Chronic Zone added: "' + (d.name || '') + '"');
+          showToast('ðŸ”¥ Chronic Zone added: "' + (d.name || '') + '"');
           loadAndComputeRoute(true);
         }
       } catch (err) {}

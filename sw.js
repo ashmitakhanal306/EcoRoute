@@ -1,26 +1,33 @@
-/**
+﻿/**
  * EcoRoute Service Worker — PWA Offline & Caching Support
  * SIH 2026 · Clean & Green Technology
+ *
+ * Uses RELATIVE paths so it works at any subpath (GitHub Pages, Vercel, localhost).
+ * The SW scope is set by the registration call in index.html using ./sw.js.
  */
 
-const CACHE_NAME = 'ecoroute-pwa-v1';
+const CACHE_NAME = 'ecoroute-pwa-v3';  // bumped: v1 had stale 404s, v2 had abs paths
+
+// All paths are relative to the SW scope (the app root).
 const PRECACHE_ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/shared/theme.css',
-  '/shared/auth.js',
-  '/shared/supabaseClient.js',
-  '/shared/wasteKnowledge.js',
-  '/assets/icons/icon-192.png',
-  '/assets/icons/icon-512.png',
-  '/assets/icons/icon.svg',
-  '/citizen/',
-  '/citizen/index.html',
-  '/driver/',
-  '/driver/index.html',
-  '/admin/',
-  '/admin/index.html'
+  './',
+  './index.html',
+  './manifest.json',
+  './config.js',
+  './shared/theme.css',
+  './shared/auth.js',
+  './shared/paths.js',
+  './shared/supabaseClient.js',
+  './shared/wasteKnowledge.js',
+  './assets/icons/icon-192.png',
+  './assets/icons/icon-512.png',
+  './assets/icons/icon.svg',
+  './citizen/',
+  './citizen/index.html',
+  './driver/',
+  './driver/index.html',
+  './admin/',
+  './admin/index.html',
 ];
 
 self.addEventListener('install', event => {
@@ -48,8 +55,14 @@ self.addEventListener('fetch', event => {
   const req = event.request;
   const url = new URL(req.url);
 
-  // Avoid caching Supabase API or external telemetry POSTs
-  if (req.method !== 'GET' || url.pathname.includes('/rest/v1') || url.pathname.includes('/auth/v1')) {
+  // Never intercept Supabase API calls or non-GET requests
+  if (
+    req.method !== 'GET' ||
+    url.pathname.includes('/rest/v1') ||
+    url.pathname.includes('/auth/v1') ||
+    url.pathname.includes('/storage/v1') ||
+    url.hostname.includes('supabase.co')
+  ) {
     return;
   }
 
@@ -66,9 +79,9 @@ self.addEventListener('fetch', event => {
       .catch(() => {
         return caches.match(req).then(cachedRes => {
           if (cachedRes) return cachedRes;
-          // Fallback to offline index for navigations
+          // Fallback to root shell for navigation requests
           if (req.mode === 'navigate') {
-            return caches.match('/');
+            return caches.match('./') || caches.match('./index.html');
           }
         });
       })

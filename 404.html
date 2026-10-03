@@ -1,0 +1,43 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>EcoRoute — Redirecting…</title>
+  <!--
+    GitHub Pages SPA routing fix (Rafael Pedicini technique).
+
+    GitHub Pages serves this 404.html whenever a path like /repo/citizen/
+    is hit directly. We encode the intended path into ?p= and redirect
+    to the repo root so index.html can restore it.
+
+    HOW IT WORKS:
+      1. User hits  https://user.github.io/repo/citizen/
+      2. GitHub Pages 404s → serves this file
+      3. This script redirects to https://user.github.io/repo/?p=citizen/
+      4. index.html's <head> script decodes ?p= and navigates to /repo/citizen/
+  -->
+  <script>
+    (function () {
+      var l = window.location;
+      // Preserve everything after the origin+pathname up to the first sub-segment
+      // that doesn't exist as a file (i.e., our SPA routes).
+      var path = l.pathname;
+      // Encode path + search + hash into a single query param
+      var encoded =
+        path.slice(1) +                          // strip leading /
+        (l.search ? '&' + l.search.slice(1) : '') + // strip leading ?
+        l.hash;
+
+      l.replace(
+        l.origin +
+        l.pathname.split('/').slice(0, 2).join('/') + // keep /repo
+        '/?p=' + encodeURIComponent(encoded)
+      );
+    })();
+  </script>
+</head>
+<body style="margin:0;background:#0f172a;color:#94a3b8;font-family:sans-serif;
+             display:flex;align-items:center;justify-content:center;height:100vh;">
+  <p>Redirecting to EcoRoute&hellip;</p>
+</body>
+</html>

@@ -12,18 +12,19 @@
  */
 
 import { supabase } from './supabaseClient.js';
+import { goTo, url } from './paths.js';
 
 /* ── Role → URL mapping ─────────────────────────────────────────
-   Paths are absolute from the server root (works with `npx serve .`).
-   Adjust if you change the folder layout.
+   Paths are relative to the app BASE computed at runtime by paths.js.
+   This works on localhost, GitHub Pages subdirectories, and any host.
    ─────────────────────────────────────────────────────────────── */
-const ROLE_ROUTES = {
-  citizen : '/citizen/',
-  driver  : '/driver/',
-  admin   : '/admin/',
+const ROLE_PATHS = {
+  citizen : 'citizen/',
+  driver  : 'driver/',
+  admin   : 'admin/',
 };
 
-const LOGIN_PAGE = '/index.html';
+const LOGIN_PATH = 'index.html';
 
 
 /* ── Demo Account Mock Support (when Supabase credentials are placeholder) ── */
@@ -135,7 +136,7 @@ export async function logout() {
   } catch (e) {
     // ignore
   }
-  window.location.replace(LOGIN_PAGE);
+  goTo(LOGIN_PATH);
 }
 
 
@@ -247,7 +248,7 @@ export async function requireRole(allowedRole) {
 
   if (!profile) {
     // Not logged in at all → go to login
-    window.location.replace(LOGIN_PAGE);
+    goTo(LOGIN_PATH);
     return null;
   }
 
@@ -271,8 +272,8 @@ export async function requireRole(allowedRole) {
    Uses location.replace so the login page is not in history.
    ──────────────────────────────────────────────────────────────── */
 export function redirectByRole(role) {
-  const destination = ROLE_ROUTES[role] ?? LOGIN_PAGE;
-  window.location.replace(destination);
+  const path = ROLE_PATHS[role] ?? LOGIN_PATH;
+  goTo(path);
 }
 
 

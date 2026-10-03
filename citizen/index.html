@@ -1,18 +1,18 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>EcoRoute — Citizen</title>
-  <meta name="description" content="EcoRoute Citizen Dashboard — report dump sites, verify community reports, and track the garbage truck live." />
-  <link rel="manifest" href="/manifest.json" />
+  <title>EcoRoute â€” Citizen</title>
+  <meta name="description" content="EcoRoute Citizen Dashboard â€” report dump sites, verify community reports, and track the garbage truck live." />
+  <link rel="manifest" href="../manifest.json" />
   <meta name="theme-color" content="#16a34a" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="EcoRoute Citizen" />
-  <link rel="apple-touch-icon" href="/assets/icons/icon-192.png" />
-  <link rel="icon" type="image/png" sizes="48x48" href="/assets/icons/favicon.png" />
-  <link rel="icon" type="image/svg+xml" href="/assets/icons/icon.svg" />
+  <link rel="apple-touch-icon" href="../assets/icons/icon-192.png" />
+  <link rel="icon" type="image/png" sizes="48x48" href="../assets/icons/favicon.png" />
+  <link rel="icon" type="image/svg+xml" href="../assets/icons/icon.svg" />
   <link rel="stylesheet" href="../shared/theme.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
@@ -120,7 +120,7 @@
     .upvote-btn svg { width: 13px; height: 13px; }
     .feed-empty { padding: 32px 16px; text-align: center; color: #94a3b8; font-size: .825rem; }
     .feed-empty-icon { font-size: 2.5rem; display: block; margin-bottom: 8px; }
-    /* ── REPORT TAB ─────────────────────────────────────── */
+    /* â”€â”€ REPORT TAB â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
     #tab-report { background: #111827; overflow-y: auto; gap: 0; padding: 0; }
 
     /* Camera zone */
@@ -312,7 +312,7 @@
       font-family: var(--font-sans); transition: all .15s;
     }
     .btn-outline-white:hover { border-color: rgba(255,255,255,.25); color: #f8fafc; }
-    /* ── WHATSAPP-STYLE CHAT TAB ── */
+    /* â”€â”€ WHATSAPP-STYLE CHAT TAB â”€â”€ */
     #tab-chat {
       background-color: #efeae2;
       background-image: radial-gradient(#d6cec3 0.75px, transparent 0.75px), radial-gradient(#d6cec3 0.75px, #efeae2 0.75px);
@@ -642,7 +642,7 @@
     #chatSend:hover { background: #075e54; transform: scale(1.05); }
     #chatSend:active { transform: scale(0.95); }
     #chatSend svg { width: 18px; height: 18px; color: #fff; margin-left: 2px; }
-    /* ── PROFILE TAB ── */
+    /* â”€â”€ PROFILE TAB â”€â”€ */
     #tab-profile { background: #f8fafc; gap: 0; padding-bottom: 24px; overflow-y: auto; }
     
     .profile-hero {
@@ -1250,7 +1250,7 @@
         </div>
         <div class="chat-header-actions">
           <button class="ai-mode-pill" id="aiModeToggle" title="Toggle AI Mode vs Local SWM 2016 Knowledge Base" type="button">
-            <span id="aiModeIcon">⚡</span>
+            <span id="aiModeIcon">âš¡</span>
             <span id="aiModeText">Local</span>
           </button>
           <button class="chat-clear-btn" id="clearChatBtn" title="Clear chat history" type="button" aria-label="Clear chat">
@@ -1269,16 +1269,16 @@
       <!-- 4 Quick-suggestion chips -->
       <div class="suggestion-chips-bar" id="suggestionChips">
         <button class="suggestion-chip" data-query="Broken glass?" type="button">
-          <span>🔨</span> Broken glass?
+          <span>ðŸ”¨</span> Broken glass?
         </button>
         <button class="suggestion-chip" data-query="Old batteries?" type="button">
-          <span>🔋</span> Old batteries?
+          <span>ðŸ”‹</span> Old batteries?
         </button>
         <button class="suggestion-chip" data-query="Food waste?" type="button">
-          <span>🍏</span> Food waste?
+          <span>ðŸ</span> Food waste?
         </button>
         <button class="suggestion-chip" data-query="Used diapers?" type="button">
-          <span>👶</span> Used diapers?
+          <span>ðŸ‘¶</span> Used diapers?
         </button>
       </div>
       <form id="chatForm">
@@ -1329,7 +1329,7 @@
         <!-- Color-coded tier & Trusted Reporter badge -->
         <div class="trust-badge-pill contributor" id="trustTierBadge">
           <span id="trustTierIcon">&#127775;</span>
-          <span id="trustTierText">Community Contributor (40–79)</span>
+          <span id="trustTierText">Community Contributor (40â€“79)</span>
         </div>
       </div>
 
@@ -1626,7 +1626,7 @@ function renderFeed() {
   if (!reports.length) {
     list.innerHTML = `
       <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 16px;gap:12px;">
-        <div style="font-size:2.5rem;">🌱</div>
+        <div style="font-size:2.5rem;">ðŸŒ±</div>
         <div style="font-size:.875rem;font-weight:700;color:#0f172a;">No reports in your area yet</div>
         <div style="font-size:.75rem;color:#64748b;text-align:center;">Be the first to report a dump site and help keep your community clean!</div>
         <button onclick="switchTab('report')" style="margin-top:6px;padding:8px 20px;border-radius:999px;border:none;background:#16a34a;color:#fff;font-size:.78rem;font-weight:700;cursor:pointer;">+ Report a Dump</button>
@@ -1696,7 +1696,7 @@ async function handleUpvote(btn) {
       r.verification_count = nextCount;
       if (r.verification_count >= 3 && r.status === 'pending_verification') {
         r.status = 'verified';
-        showToast('🎉 Report verified! Passed to drivers.');
+        showToast('ðŸŽ‰ Report verified! Passed to drivers.');
         try {
           const syncChannel = new BroadcastChannel('ecoroute-sync');
           syncChannel.postMessage({
@@ -1758,9 +1758,9 @@ function subscribeRealtime() {
     .subscribe();
 }
 
-/* ═══════════════════════════════════════════
-   REPORT TAB — camera, compress, geo, submit
-═══════════════════════════════════════════ */
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   REPORT TAB â€” camera, compress, geo, submit
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
 const photoFileEl    = document.getElementById('photoFile');
 const photoPreviewEl = document.getElementById('photoPreview');
@@ -1778,7 +1778,7 @@ let repLat = null, repLng = null;
 let compressedBlob = null;
 let fallbackMap = null, fallbackPin = null;
 
-/* ── Image compression (canvas, max 1200px) ── */
+/* â”€â”€ Image compression (canvas, max 1200px) â”€â”€ */
 function compressImage(file, maxPx = 1200, quality = 0.82) {
   return new Promise(resolve => {
     const img = new Image();
@@ -1799,7 +1799,7 @@ function compressImage(file, maxPx = 1200, quality = 0.82) {
   });
 }
 
-/* ── Photo selection ── */
+/* â”€â”€ Photo selection â”€â”€ */
 photoFileEl.addEventListener('change', async e => {
   const file = e.target.files[0];
   if (!file) return;
@@ -1820,7 +1820,7 @@ photoFileEl.addEventListener('change', async e => {
   }
 });
 
-/* ── Retake ── */
+/* â”€â”€ Retake â”€â”€ */
 retakeBtnEl.addEventListener('click', () => {
   photoPreviewEl.style.display = 'none';
   cameraBtnEl.style.display = '';
@@ -1830,12 +1830,12 @@ retakeBtnEl.addEventListener('click', () => {
   compressedBlob = null;
 });
 
-/* ── Geolocation ── */
+/* â”€â”€ Geolocation â”€â”€ */
 function setLocDetected(lat, lng) {
   repLat = lat; repLng = lng;
   document.getElementById('repLat').value = lat;
   document.getElementById('repLng').value = lng;
-  locValueEl.textContent = lat.toFixed(5) + '°N, ' + lng.toFixed(5) + '°E';
+  locValueEl.textContent = lat.toFixed(5) + 'Â°N, ' + lng.toFixed(5) + 'Â°E';
   locValueEl.classList.remove('muted');
   locChipEl.classList.add('detected'); locChipEl.classList.remove('error');
   locSpinnerEl.style.display = 'none';
@@ -1845,7 +1845,7 @@ function setLocDetected(lat, lng) {
 window.setLocDetected = setLocDetected;
 
 function setLocError() {
-  locValueEl.textContent = 'Permission denied — tap map to pin';
+  locValueEl.textContent = 'Permission denied â€” tap map to pin';
   locValueEl.classList.add('muted');
   locChipEl.classList.add('error'); locChipEl.classList.remove('detected');
   locSpinnerEl.style.display = 'none';
@@ -1868,7 +1868,7 @@ function setLocError() {
 function detectLocation() {
   locSpinnerEl.style.display = '';
   retryLocBtnEl.style.display = 'none';
-  locValueEl.textContent = 'Detecting…';
+  locValueEl.textContent = 'Detectingâ€¦';
   locValueEl.classList.add('muted');
   locChipEl.classList.remove('detected', 'error');
   if (!navigator.geolocation) { setLocError(); return; }
@@ -1886,13 +1886,13 @@ function updateSubmitState() {
   submitRepBtn.disabled = (repLat === null);
 }
 
-/* ── Submit ── */
+/* â”€â”€ Submit â”€â”€ */
 submitRepBtn.addEventListener('click', async () => {
   if (repLat === null) { showToast('Please allow location access or tap the map'); return; }
   const desc = document.getElementById('repDesc').value.trim();
 
   submitRepBtn.classList.add('loading');
-  submitRepBtn.innerHTML = '<svg class="spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg><span>Uploading…</span>';
+  submitRepBtn.innerHTML = '<svg class="spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg><span>Uploadingâ€¦</span>';
 
   let photo_url = null;
   const uploadBlob = compressedBlob || (photoFileEl.files[0] || null);
@@ -2037,7 +2037,7 @@ function spawnParticles() {
   }
 }
 
-/* ── Reset / Again ── */
+/* â”€â”€ Reset / Again â”€â”€ */
 function resetReportTab() {
   photoPreviewEl.style.display = 'none';
   cameraBtnEl.style.display = '';
@@ -2060,13 +2060,13 @@ function resetReportTab() {
 document.getElementById('reportAgainBtn').addEventListener('click', resetReportTab);
 document.getElementById('goHomeBtn').addEventListener('click', () => { resetReportTab(); switchTab('home'); });
 
-/* ═══════════════════════════════════════════
-   CHAT TAB — WhatsApp-style Segregation Assistant
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   CHAT TAB â€” WhatsApp-style Segregation Assistant
    Two-layer architecture:
    Layer 1: Local SWM 2016 knowledge base (/shared/wasteKnowledge.js)
    Layer 2: Optional AI mode (Supabase Edge Function 'waste-chat')
    Persistent localStorage chat history
-═══════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
 const chatMessagesEl    = document.getElementById('chatMessages');
 const typingEl          = document.getElementById('typingIndicator');
@@ -2086,7 +2086,7 @@ let aiModeActive = localStorage.getItem(AI_STORAGE_KEY) === 'true';
 function updateAiToggleUI() {
   if (!aiModeToggleEl) return;
   aiModeToggleEl.classList.toggle('active', aiModeActive);
-  aiModeIconEl.textContent = aiModeActive ? '✨' : '⚡';
+  aiModeIconEl.textContent = aiModeActive ? 'âœ¨' : 'âš¡';
   aiModeTextEl.textContent = aiModeActive ? 'AI' : 'Local';
   aiModeToggleEl.title     = aiModeActive
     ? 'AI Mode active (Edge Function). Click to switch to Offline Local KB.'
@@ -2099,7 +2099,7 @@ if (aiModeToggleEl) {
     aiModeActive = !aiModeActive;
     localStorage.setItem(AI_STORAGE_KEY, aiModeActive ? 'true' : 'false');
     updateAiToggleUI();
-    showToast(aiModeActive ? '✨ Switched to AI Mode (Edge Function)' : '⚡ Switched to Local SWM Knowledge Base');
+    showToast(aiModeActive ? 'âœ¨ Switched to AI Mode (Edge Function)' : 'âš¡ Switched to Local SWM Knowledge Base');
   });
 }
 
@@ -2110,7 +2110,7 @@ const APP_FAQS = [
   [/upvote|verify/i, 'Verify any community report on the Home feed by tapping thumbs-up. 3 upvotes confirm the hotspot for municipal cleanup!'],
   [/truck|driver|collect/i, 'The live truck marker on the Home map tracks your municipal collection vehicle in real time via GPS!'],
   [/clean|cleaned|hotspot/i, 'Hotspots with 5+ community reports become Chronic hotspots and are given top priority on drivers\' daily route.'],
-  [/hi|hello|namaste|hey|help/i, 'Namaste! 🙏 Ask me how to segregate any waste item (e.g. "kaanch", "broken glass", "used batteries", "chai patti", "medicine") or tap any quick suggestion chip!']
+  [/hi|hello|namaste|hey|help/i, 'Namaste! ðŸ™ Ask me how to segregate any waste item (e.g. "kaanch", "broken glass", "used batteries", "chai patti", "medicine") or tap any quick suggestion chip!']
 ];
 
 function escapeHtml(str) {
@@ -2128,8 +2128,8 @@ function formatTime(ts) {
 }
 
 function binIcon(color) {
-  const map = { green: '🍏', blue: '📦', red: '⚠️', black: '🩹' };
-  return map[color] || '🗑️';
+  const map = { green: 'ðŸ', blue: 'ðŸ“¦', red: 'âš ï¸', black: 'ðŸ©¹' };
+  return map[color] || 'ðŸ—‘ï¸';
 }
 
 function scrollChatBottom(smooth = true) {
@@ -2151,7 +2151,7 @@ function loadChatHistory() {
     {
       id: 'welcome-0',
       sender: 'bot',
-      text: 'Namaste! 🙏 I am EcoBot, your Smart Waste Segregation Assistant adhering to India\'s Solid Waste Management (SWM) Rules 2016.\n\nAsk me how to dispose of any household item (e.g., "Broken glass", "Old batteries", "Food waste", "Used diapers", "Chai patti", "Kaanch") or tap one of the suggestion chips below!',
+      text: 'Namaste! ðŸ™ I am EcoBot, your Smart Waste Segregation Assistant adhering to India\'s Solid Waste Management (SWM) Rules 2016.\n\nAsk me how to dispose of any household item (e.g., "Broken glass", "Old batteries", "Food waste", "Used diapers", "Chai patti", "Kaanch") or tap one of the suggestion chips below!',
       timestamp: Date.now()
     }
   ];
@@ -2191,7 +2191,7 @@ function renderMessageElement(msg) {
         contentHtml += '  <div class="guidelines-box">';
         msg.guidelines.forEach(g => {
           contentHtml += '    <div class="guideline-item">';
-          contentHtml += '      <span class="guideline-bullet">✓</span>';
+          contentHtml += '      <span class="guideline-bullet">âœ“</span>';
           contentHtml += '      <span>' + escapeHtml(g) + '</span>';
           contentHtml += '    </div>';
         });
@@ -2202,7 +2202,7 @@ function renderMessageElement(msg) {
         contentHtml += '  <div class="explanation-text">' + escapeHtml(msg.explanation) + '</div>';
       }
 
-      contentHtml += '  <div class="source-tag">' + (msg.isAi ? '✨ AI Segregation' : '⚡ Local SWM 2016 Rules') + '</div>';
+      contentHtml += '  <div class="source-tag">' + (msg.isAi ? 'âœ¨ AI Segregation' : 'âš¡ Local SWM 2016 Rules') + '</div>';
       contentHtml += '</div>';
     } else {
       contentHtml += '<div class="chat-text">' + escapeHtml(msg.text) + '</div>';
@@ -2369,9 +2369,9 @@ if (clearChatBtnEl) {
   });
 }
 
-/* ═══════════════════════════════════════════
-   PROFILE TAB — Trust Score, Realtime & Reports
-═══════════════════════════════════════════ */
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   PROFILE TAB â€” Trust Score, Realtime & Reports
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
 const trustRingFillEl = document.getElementById('trustRingFill');
 const trustRingTrackEl= document.getElementById('trustRingTrack');
@@ -2402,7 +2402,7 @@ function updateTrustScoreUI(score) {
     if (trustRingNumEl)   trustRingNumEl.style.color = '#ef4444';
     if (trustTierBadgeEl) {
       trustTierBadgeEl.className = 'trust-badge-pill low';
-      trustTierIconEl.textContent = '⚠️';
+      trustTierIconEl.textContent = 'âš ï¸';
       trustTierTextEl.textContent = 'Low Trust (<40)';
     }
   } else if (cleanScore < 80) {
@@ -2411,8 +2411,8 @@ function updateTrustScoreUI(score) {
     if (trustRingNumEl)   trustRingNumEl.style.color = '#d97706';
     if (trustTierBadgeEl) {
       trustTierBadgeEl.className = 'trust-badge-pill contributor';
-      trustTierIconEl.textContent = '🌟';
-      trustTierTextEl.textContent = 'Community Contributor (40–79)';
+      trustTierIconEl.textContent = 'ðŸŒŸ';
+      trustTierTextEl.textContent = 'Community Contributor (40â€“79)';
     }
   } else {
     // >= 80: Green with "Trusted Reporter" badge
@@ -2421,7 +2421,7 @@ function updateTrustScoreUI(score) {
     if (trustRingNumEl)   trustRingNumEl.style.color = '#15803d';
     if (trustTierBadgeEl) {
       trustTierBadgeEl.className = 'trust-badge-pill trusted';
-      trustTierIconEl.textContent = '✨';
+      trustTierIconEl.textContent = 'âœ¨';
       trustTierTextEl.textContent = 'Trusted Reporter (80+)';
     }
   }
@@ -2439,7 +2439,7 @@ function renderMyReports() {
   if (!myReportsData.length) {
     myReportsListEl.innerHTML = `
       <div class="my-reports-empty">
-        <span class="my-reports-empty-icon">🌱</span>
+        <span class="my-reports-empty-icon">ðŸŒ±</span>
         <div class="my-reports-empty-title">No reports submitted yet</div>
         <div class="my-reports-empty-sub">Help clean your community by reporting dump sites and earning trust points!</div>
         <button class="my-reports-create-btn" id="createFirstRepBtn" type="button">+ Report Dump Site</button>
@@ -2453,21 +2453,21 @@ function renderMyReports() {
   myReportsListEl.innerHTML = myReportsData.map(r => {
     const thumbHtml = r.photo_url
       ? `<div class="my-report-thumb"><img src="${escapeHtml(r.photo_url)}" alt="Report" loading="lazy" /></div>`
-      : `<div class="my-report-thumb">🗑️</div>`;
+      : `<div class="my-report-thumb">ðŸ—‘ï¸</div>`;
 
     let statusCls = 'pending';
-    let statusText = '⏳ Pending';
+    let statusText = 'â³ Pending';
     if (r.status === 'verified') {
       statusCls = 'verified';
-      statusText = '✓ Verified';
+      statusText = 'âœ“ Verified';
     } else if (r.status === 'cleaned') {
       statusCls = 'cleaned';
-      statusText = '🧹 Cleaned';
+      statusText = 'ðŸ§¹ Cleaned';
     }
 
     const titleText = r.description
       ? escapeHtml(r.description.slice(0, 48))
-      : `${parseFloat(r.lat).toFixed(4)}°N, ${parseFloat(r.lng).toFixed(4)}°E`;
+      : `${parseFloat(r.lat).toFixed(4)}Â°N, ${parseFloat(r.lng).toFixed(4)}Â°E`;
 
     return `
       <div class="my-report-card" data-lat="${r.lat}" data-lng="${r.lng}" title="Click to view on map">
@@ -2479,7 +2479,7 @@ function renderMyReports() {
           </div>
           <div class="my-report-meta">
             <span>${timeAgo(r.created_at)}</span>
-            <span class="my-report-upvotes">👍 ${r.verification_count || 0} upvotes</span>
+            <span class="my-report-upvotes">ðŸ‘ ${r.verification_count || 0} upvotes</span>
           </div>
         </div>
       </div>
@@ -2627,7 +2627,7 @@ supabase.channel('citizen-profile-live-' + ME.id)
       updateTrustScoreUI(ME.trust_score);
       const diff = ME.trust_score - oldScore;
       const diffText = diff > 0 ? ` (+${diff} pts!)` : '';
-      showToast(`⭐ Trust Score updated: ${ME.trust_score} pts${diffText}`);
+      showToast(`â­ Trust Score updated: ${ME.trust_score} pts${diffText}`);
     }
   })
   .subscribe();
@@ -2654,15 +2654,15 @@ try {
       const oldScore = ME.trust_score;
       ME.trust_score = d.new_score;
       updateTrustScoreUI(ME.trust_score);
-      showToast(`⭐ Trust Score updated: ${ME.trust_score} pts (+${d.diff || 5} pts!)`);
+      showToast(`â­ Trust Score updated: ${ME.trust_score} pts (+${d.diff || 5} pts!)`);
     } else if (d.type === 'HOTSPOT_CLEANED') {
-      showToast(`✨ Dump cleaned by driver! +10 points awarded.`);
+      showToast(`âœ¨ Dump cleaned by driver! +10 points awarded.`);
       loadFeed();
       loadProfile();
     } else if (d.type === 'NEW_REPORT') {
       loadFeed();
     } else if (d.type === 'RESET_DEMO') {
-      showToast('✨ Demo data reset to baseline');
+      showToast('âœ¨ Demo data reset to baseline');
       loadFeed();
       loadProfile();
     }
@@ -2677,7 +2677,7 @@ window.addEventListener('storage', e => {
         if (parsed.profile.trust_score !== ME.trust_score) {
           ME.trust_score = parsed.profile.trust_score;
           updateTrustScoreUI(ME.trust_score);
-          showToast(`⭐ Trust Score updated: ${ME.trust_score} pts`);
+          showToast(`â­ Trust Score updated: ${ME.trust_score} pts`);
         }
       }
     } catch(err) {}

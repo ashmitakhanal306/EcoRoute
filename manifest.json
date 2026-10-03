@@ -1,10 +1,10 @@
-{
-  "name": "EcoRoute — Smart Waste Management",
+﻿{
+  "name": "EcoRoute â€” Smart Waste Management",
   "short_name": "EcoRoute",
   "description": "AI-Powered Municipal Solid Waste Management, Realtime Citizen Crowdsourcing, and Dynamic Route Optimization (SIH 2026)",
-  "id": "/",
-  "start_url": "/",
-  "scope": "/",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
   "background_color": "#0f172a",
@@ -13,31 +13,31 @@
   "categories": ["utilities", "government", "productivity"],
   "icons": [
     {
-      "src": "/assets/icons/icon-192.png",
+      "src": "./assets/icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/assets/icons/icon-maskable-192.png",
+      "src": "./assets/icons/icon-maskable-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "/assets/icons/icon-512.png",
+      "src": "./assets/icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/assets/icons/icon-maskable-512.png",
+      "src": "./assets/icons/icon-maskable-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "/assets/icons/icon.svg",
+      "src": "./assets/icons/icon.svg",
       "sizes": "any",
       "type": "image/svg+xml"
     }
@@ -47,22 +47,22 @@
       "name": "Citizen Dashboard",
       "short_name": "Citizen",
       "description": "Report dump sites and verify community waste alerts",
-      "url": "/citizen/",
-      "icons": [{ "src": "/assets/icons/icon-192.png", "sizes": "192x192" }]
+      "url": "./citizen/",
+      "icons": [{ "src": "./assets/icons/icon-192.png", "sizes": "192x192" }]
     },
     {
       "name": "Driver Route Console",
       "short_name": "Driver",
       "description": "Live GPS navigation and collection route stops",
-      "url": "/driver/",
-      "icons": [{ "src": "/assets/icons/icon-192.png", "sizes": "192x192" }]
+      "url": "./driver/",
+      "icons": [{ "src": "./assets/icons/icon-192.png", "sizes": "192x192" }]
     },
     {
       "name": "Admin Command Center",
       "short_name": "Admin",
       "description": "City-wide telemetry, ML prediction heatmap, and fleet control",
-      "url": "/admin/",
-      "icons": [{ "src": "/assets/icons/icon-192.png", "sizes": "192x192" }]
+      "url": "./admin/",
+      "icons": [{ "src": "./assets/icons/icon-192.png", "sizes": "192x192" }]
     }
   ]
 }
