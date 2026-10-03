@@ -968,7 +968,12 @@ new Chart(ctx, {
   <!-- LEFT SIDEBAR -->
   <aside class="admin-sidebar">
     <div class="sidebar-top">
-      <div class="brand-header">
+      
+      <div class="brand-header" style="display:flex; align-items:center; gap:8px;">
+        <button id="adminExitBtn" title="Exit to Main Page" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:#94a3b8; cursor:pointer; padding: 6px; display:flex; align-items:center; justify-content:center; transition: background 0.2s, color 0.2s;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+
         <div class="brand-logo">&#127807;</div>
         <div class="brand-text">
           <h1>EcoRoute</h1>
