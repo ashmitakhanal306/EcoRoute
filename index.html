@@ -399,12 +399,15 @@ if (
 }
 
 /* Auto-redirect if session already exists */
-(async () => {
-  try {
-    const profile = await getCurrentProfile();
-    if (profile) redirectByRole(profile.role);
-  } catch (_) { /* no session Ã¢â‚¬â€ stay */ }
-})();
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get('noredirect') !== '1') {
+  (async () => {
+    try {
+      const profile = await getCurrentProfile();
+      if (profile) redirectByRole(profile.role);
+    } catch (_) { /* no session - stay */ }
+  })();
+}
 
 const emailEl    = document.getElementById('email');
 const passEl     = document.getElementById('password');
