@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>CleanGreen — Driver Dashboard</title>
+  <meta name="description" content="Smart garbage collection route dashboard for municipal drivers." />
+  <link rel="stylesheet" href="css/shared.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    /* ── Dark mobile shell ───────────────── */
+    body {
+      background: #050a05;
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh;
+      --dark-bg: #0c1a0c;
+      --dark-card: #111d11;
+      --dark-border: rgba(34,197,94,.15);
+      --dark-surface: rgba(255,255,255,.04);
+    }
+    .phone-shell {
+      width: 390px; height: 844px;
+      background: var(--dark-bg);
+      border-radius: 44px;
+      overflow: hidden;
+      position: relative;
+      box-shadow: 0 40px 100px rgba(0,0,0,.7), 0 0 0 1px rgba(34,197,94,.1);
+    }
+    @media (max-width: 440px) {
+      body { background: var(--dark-bg); align-items: flex-start; }
+      .phone-shell { width: 100vw; height: 100vh; border-radius: 0; box-shadow: none; }
+    }
+
+    /* Status bar */
+    .status-bar {
+      position: absolute; top: 0; left: 0; right: 0; height: 44px; z-index: 100;
+      background: rgba(10,20,10,.9); backdrop-filter: blur(10px);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 24px; font-size: 0.75rem; font-weight: 600;
+      color: rgba(255,255,255,.8);
+      border-bottom: 1px solid rgba(34,197,94,.1);
+    }
+    .status-right { display: flex; align-items: center; gap: 8px; }
+    .signal-strength { color: var(--green-400); font-size: 0.8rem; }
+
+    /* Map fills entire screen */
+    #driver-map { width: 100%; height: 100%; }
+    .map-container { position: absolute; inset: 0; z-index: 1; }
+
+    /* ── Screen switcher (top overlay) ───── */
+    .screen-tabs {
+      position: absolute; top: 52px; left: 50%; transform: translateX(-50%);
+      z-index: 200; display: flex; gap: 4px;
+      background: rgba(10,20,10,.85); backdrop-filter: blur(12px);
+      border: 1px solid var(--dark-border);
+      border-radius: var(--radius-full); padding: 4px;
+    }
+    .screen-tab {
+      padding: 6px 18px; border-radius: var(--radius-full);
+      font-size: 0.75rem; font-weight: 700; letter-spacing: 0.04em;
+      color: rgba(255,255,255,.4); cursor: pointer;
+      transition: all var(--duration-normal);
+    }
+    .screen-tab.active { background: var(--green-600); color: #fff; }
+
+    /* ── Top HUD overlay ──────────────────── */
+    .top-hud {
+      position: absolute; top: 98px; left: 12px; right: 12px; z-index: 200;
+      display: flex; justify-content: space-between; gap: 8px;
+    }
+    .hud-chip {
+      display: flex; align-items: center; gap: 6px;
+      background: rgba(10,20,10,.85); backdrop-filter: blur(12px);
+      border: 1px solid var(--dark-border);
+      border-radius: var(--radius-md); padding: 8px 12px;
+      flex: 1;
+    }
+    .hud-icon { font-size: 1rem; }
+    .hud-label { font-size: 0.65rem; color: var(--gray-500); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+    .hud-value { font-size: 0.875rem; font-weight: 700; color: #fff; }
+
+    /* ── Route info card (hidden on map) ── */
+    .route-panel {
+      position: absolute; inset: 0; z-index: 150;
+      background: var(--dark-bg); display: none;
+      flex-direction: column; overflow-y: auto;
+    }
+    .route-panel.show { display: flex; }
+    .route-header { padding: 60px 20px 20px; }
+    .route-day-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(34,197,94,.1); border: 1px solid rgba(34,197,94,.25);
+      color: var(--green-400); padding: 5px 14px; border-radius: var(--radius-full);
+      font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; margin-bottom: 12px;
+    }
+    .route-title { font-size: 1.5rem; font-weight: 900; color: #fff; letter-spacing: -0.03em; }
+    .route-sub { font-size: 0.875rem; color: var(--gray-500); margin-top: 4px; }
+
+    /* Stops list */
+    .stops-list { padding: 0 16px 16px; display: flex; flex-direction: column; gap: 10px; }
+    .stop-card {
+      background: var(--dark-card); border: 1px solid rgba(255,255,255,.06);
+      border-radius: var(--radius-lg); padding: 16px;
+      display: flex; gap: 14px; align-items: flex-start;
+      transition: all var(--duration-normal);
+    }
+    .stop-card:hover { border-color: var(--dark-border); }
+    .stop-card.current { border-color: var(--green-500); background: rgba(34,197,94,.07); }
+    .stop-card.done { opacity: .5; }
+
+    .stop-num {
+      width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.875rem; font-weight: 800; border: 2px solid;
+    }
+    .stop-num.todo { background: rgba(255,255,255,.05); border-color: rgba(255,255,255,.1); color: rgba(255,255,255,.4); }
+    .stop-num.current-num { background: var(--green-500); border-color: var(--green-500); color: #fff; animation: pulse-green 2s infinite; }
+    .stop-num.done-num { background: rgba(34,197,94,.15); border-color: var(--green-500); color: var(--green-400); }
+
+    .stop-info { flex: 1; }
+    .stop-name { font-size: 0.9375rem; font-weight: 700; color: #fff; margin-bottom: 4px; }
+    .stop-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .stop-meta-chip {
+      display: flex; align-items: center; gap: 4px;
+      font-size: 0.7rem; color: var(--gray-500); font-weight: 500;
+    }
+    .priority-tag {
+      padding: 2px 8px; border-radius: var(--radius-full);
+      font-size: 0.65rem; font-weight: 700;
+    }
+    .priority-chronic { background: rgba(239,68,68,.2); color: var(--red-400); border: 1px solid rgba(239,68,68,.3); }
+    .priority-predicted { background: rgba(245,158,11,.2); color: var(--amber-400); border: 1px solid rgba(245,158,11,.3); }
+    .priority-normal { background: rgba(34,197,94,.15); color: var(--green-400); border: 1px solid rgba(34,197,94,.25); }
+
+    .stop-reports { font-size: 0.75rem; color: var(--gray-500); margin-top: 6px; }
+    .stop-reports span { color: var(--red-400); font-weight: 700; }
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       NEXT STOP BOTTOM CARD (the key UI)
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    .next-stop-overlay {
+      position: absolute; bottom: 0; left: 0; right: 0; z-index: 200;
+      animation: slideUp .4s var(--ease-out) both;
+    }
+    .next-stop-card {
+      margin: 0 8px 8px;
+      background: var(--dark-card); backdrop-filter: blur(20px);
+      border: 1px solid var(--dark-border);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      box-shadow: 0 -4px 30px rgba(0,0,0,.4), 0 0 0 1px rgba(34,197,94,.08);
+    }
+
+    /* Card handle */
+    .card-handle { width: 36px; height: 4px; background: rgba(255,255,255,.15); border-radius: 2px; margin: 10px auto; }
+
+    /* Stop header */
+    .card-stop-header { padding: 4px 16px 12px; display: flex; align-items: flex-start; gap: 12px; }
+    .card-stop-badge {
+      background: rgba(239,68,68,.15); border: 1px solid rgba(239,68,68,.3);
+      color: var(--red-400); padding: 3px 10px; border-radius: var(--radius-full);
+      font-size: 0.65rem; font-weight: 800; letter-spacing: 0.08em; flex-shrink: 0; margin-top: 2px;
+    }
+    .card-stop-badge.green-badge {
+      background: rgba(34,197,94,.15); border-color: rgba(34,197,94,.3); color: var(--green-400);
+    }
+    .card-stop-info { flex: 1; }
+    .card-stop-name { font-size: 1.0625rem; font-weight: 800; color: #fff; letter-spacing: -0.02em; }
+    .card-stop-sub { font-size: 0.8125rem; color: var(--gray-500); margin-top: 2px; }
+
+    /* Metrics row */
+    .card-metrics { display: flex; gap: 0; border-top: 1px solid rgba(255,255,255,.05); border-bottom: 1px solid rgba(255,255,255,.05); }
+    .card-metric {
+      flex: 1; padding: 12px; text-align: center;
+      border-right: 1px solid rgba(255,255,255,.05);
+    }
+    .card-metric:last-child { border-right: none; }
+    .metric-val { font-size: 1.125rem; font-weight: 800; }
+    .metric-lbl { font-size: 0.65rem; color: var(--gray-500); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; margin-top: 2px; }
+
+    /* THE BIG GREEN BUTTON */
+    .mark-clean-btn {
+      display: block; width: calc(100% - 24px); margin: 14px 12px;
+      padding: 20px;
+      background: linear-gradient(135deg, #22c55e, #059669);
+      color: #fff; font-size: 1.25rem; font-weight: 900; letter-spacing: 0.04em;
+      border-radius: var(--radius-lg);
+      text-align: center;
+      box-shadow: 0 8px 30px rgba(34,197,94,.45);
+      transition: all var(--duration-normal) var(--ease-spring);
+      position: relative; overflow: hidden;
+      user-select: none;
+    }
+    .mark-clean-btn::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,.15), transparent);
+      opacity: 0; transition: opacity var(--duration-fast);
+    }
+    .mark-clean-btn:hover { transform: scale(1.02); box-shadow: 0 12px 40px rgba(34,197,94,.55); }
+    .mark-clean-btn:hover::after { opacity: 1; }
+    .mark-clean-btn:active { transform: scale(.97); }
+    .mark-clean-btn.done {
+      background: rgba(255,255,255,.06);
+      color: var(--green-400);
+      box-shadow: none;
+    }
+    .btn-sub { font-size: 0.75rem; font-weight: 500; opacity: .7; margin-top: 3px; }
+
+    /* Cleaned flash */
+    .cleaned-flash {
+      position: absolute; inset: 0; z-index: 300;
+      background: rgba(34,197,94,.15);
+      pointer-events: none; opacity: 0;
+      transition: opacity .15s;
+    }
+    .cleaned-flash.flash { opacity: 1; }
+
+    /* Skip button */
+    .skip-btn {
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      padding: 10px 16px 16px;
+      font-size: 0.875rem; font-weight: 600; color: var(--gray-500);
+      cursor: pointer; transition: color var(--duration-fast);
+    }
+    .skip-btn:hover { color: var(--gray-300); }
+
+    /* Notification banner */
+    .driver-notif {
+      position: absolute; top: 96px; left: 12px; right: 12px; z-index: 250;
+      background: rgba(245,158,11,.12); border: 1px solid rgba(245,158,11,.3);
+      border-radius: var(--radius-md); padding: 10px 14px;
+      display: flex; align-items: center; gap: 10px;
+      animation: slideUp .3s var(--ease-out);
+    }
+    .notif-icon { font-size: 1.125rem; }
+    .notif-text { font-size: 0.8125rem; color: rgba(255,255,255,.8); flex: 1; line-height: 1.4; }
+    .notif-close { color: rgba(255,255,255,.3); cursor: pointer; font-size: 1rem; }
+    .driver-notif.hidden { display: none; }
+  </style>
+</head>
+<body>
+<div class="phone-shell" id="phoneShell">
+
+  <!-- Status bar -->
+  <div class="status-bar">
+    <span style="display:flex;align-items:center;gap:6px;">🚛 <span style="color:var(--green-400)">ROUTE ACTIVE</span></span>
+    <div class="status-right">
+      <span class="signal-strength">▐▐▐</span>
+      <span>9:41</span> 🔋
+    </div>
+  </div>
+
+  <!-- Screen tabs -->
+  <div class="screen-tabs">
+    <div class="screen-tab active" id="tab-map" onclick="showScreen('map')">🗺 Live Map</div>
+    <div class="screen-tab" id="tab-route" onclick="showScreen('route')">📋 Route</div>
+  </div>
+
+  <!-- Alert notification -->
+  <div class="driver-notif" id="driverNotif">
+    <div class="notif-icon">🚨</div>
+    <div class="notif-text"><strong>NEW CITIZEN REPORT:</strong> Fresh dump at Main Rd crossing — added to route</div>
+    <div class="notif-close" onclick="this.parentElement.classList.add('hidden')">✕</div>
+  </div>
+
+  <!-- MAP SCREEN -->
+  <div class="map-container" id="screen-map">
+    <div id="driver-map"></div>
+
+    <!-- HUD chips (only visible on map, below notification) -->
+    <div class="top-hud" id="mapHud" style="top:148px">
+      <div class="hud-chip">
+        <div class="hud-icon">📍</div>
+        <div>
+          <div class="hud-label">Next Stop</div>
+          <div class="hud-value">1.2 km</div>
+        </div>
+      </div>
+      <div class="hud-chip">
+        <div class="hud-icon">⏱</div>
+        <div>
+          <div class="hud-label">ETA</div>
+          <div class="hud-value">~4 min</div>
+        </div>
+      </div>
+      <div class="hud-chip">
+        <div class="hud-icon">✅</div>
+        <div>
+          <div class="hud-label">Done</div>
+          <div class="hud-value" id="doneCount">1 / 6</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROUTE PANEL -->
+  <div class="route-panel" id="screen-route">
+    <div class="route-header">
+      <div class="route-day-badge">⚡ AI-OPTIMIZED · FRI 3 OCT 2026</div>
+      <div class="route-title">Smart Daily Route</div>
+      <div class="route-sub">6 stops · 14.2 km · Est. 3h 40m</div>
+    </div>
+    <div class="stops-list" id="stopsList"></div>
+  </div>
+
+  <!-- NEXT STOP CARD (always on top of map) -->
+  <div class="next-stop-overlay" id="nextStopOverlay">
+    <div class="next-stop-card">
+      <div class="card-handle"></div>
+      <div class="card-stop-header">
+        <div class="card-stop-badge" id="stopBadge">🔴 CHRONIC ZONE</div>
+        <div class="card-stop-info">
+          <div class="card-stop-name" id="stopName">Sector 4 Pole — Chronic Dump</div>
+          <div class="card-stop-sub" id="stopSub">📍 Main Rd, near water tank · 7 citizen reports</div>
+        </div>
+      </div>
+      <div class="card-metrics">
+        <div class="card-metric">
+          <div class="metric-val" style="color:var(--amber-400)">7</div>
+          <div class="metric-lbl">Reports</div>
+        </div>
+        <div class="card-metric">
+          <div class="metric-val" style="color:var(--blue-400)">1.2km</div>
+          <div class="metric-lbl">Distance</div>
+        </div>
+        <div class="card-metric">
+          <div class="metric-val" style="color:var(--green-400)">HIGH</div>
+          <div class="metric-lbl">Priority</div>
+        </div>
+      </div>
+      <button class="mark-clean-btn" id="markCleanBtn" onclick="markCleaned()">
+        ✅ MARK AS CLEANED
+        <div class="btn-sub">Tap to update live map & notify admin</div>
+      </button>
+      <div class="skip-btn" onclick="nextStop()">⏭ Skip to next stop</div>
+    </div>
+  </div>
+
+  <!-- Flash effect -->
+  <div class="cleaned-flash" id="cleanedFlash"></div>
+
+</div><!-- /phone-shell -->
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+// hotspot_id values match seed data in admin/index.html so the pin flip works
+const STOPS = [
+  { name:'Old Market Bins',                hotspot_id:'h06', sub:'Ward 12 Market Complex',                        badge:'🟡 PREDICTED',   badgeClass:'',           reports:3, dist:'0.4km', priority:'MED',    status:'done' },
+  { name:'Sector 4 Pole — Chronic Dump',   hotspot_id:'h01', sub:'Main Rd, near water tank · 7 citizen reports', badge:'🔴 CHRONIC ZONE', badgeClass:'',           reports:7, dist:'1.2km', priority:'HIGH',   status:'current' },
+  { name:'Lajpat Nagar Market',            hotspot_id:'h03', sub:'Behind vegetable stalls',                       badge:'🟡 PREDICTED',   badgeClass:'',           reports:4, dist:'2.8km', priority:'MED',    status:'todo' },
+  { name:'Near Government School',         hotspot_id:'h08', sub:'Gate No. 2, field side',                        badge:'🟢 SCHEDULED',   badgeClass:'green-badge', reports:2, dist:'3.6km', priority:'NORMAL', status:'todo' },
+  { name:'Citizen Report — Main Crossing', hotspot_id:'h05', sub:'NEW · just added · 2 citizen reports',          badge:'🔴 REPORT',      badgeClass:'',           reports:2, dist:'5.1km', priority:'HIGH',   status:'todo' },
+  { name:'Central Park Bins',              hotspot_id:'h15', sub:'East entrance bins',                            badge:'🟢 SCHEDULED',   badgeClass:'green-badge', reports:1, dist:'6.8km', priority:'LOW',    status:'todo' },
+];
+
+let currentStopIndex = 1; // index 1 = "Sector 4" is current
+let doneCount = 1;
+
+/* ── Build route list ──────────────────── */
+function buildStopsList() {
+  const list = document.getElementById('stopsList');
+  list.innerHTML = '';
+  STOPS.forEach((stop, i) => {
+    const div = document.createElement('div');
+    div.className = `stop-card ${stop.status === 'current' ? 'current' : stop.status === 'done' ? 'done' : ''}`;
+    div.id = `stop-card-${i}`;
+    const numClass = stop.status === 'done' ? 'done-num' : stop.status === 'current' ? 'current-num' : 'todo';
+    const numContent = stop.status === 'done' ? '✓' : i + 1;
+    const priorityClass = stop.priority === 'HIGH' ? 'priority-chronic' : stop.priority === 'MED' ? 'priority-predicted' : 'priority-normal';
+    div.innerHTML = `
+      <div class="stop-num ${numClass}">${numContent}</div>
+      <div class="stop-info">
+        <div class="stop-name">${stop.name}</div>
+        <div class="stop-meta">
+          <span class="stop-meta-chip">📏 ${stop.dist}</span>
+          <span class="priority-tag ${priorityClass}">${stop.priority}</span>
+          ${stop.badge}
+        </div>
+        <div class="stop-reports">👥 <span>${stop.reports}</span> citizen report${stop.reports !== 1 ? 's' : ''}</div>
+      </div>
+    `;
+    list.appendChild(div);
+  });
+}
+
+/* ── Map ──────────────────────────────── */
+let driverMap, currentPinMarker, cleanedPins = [];
+
+const STOP_COORDS = [
+  [28.636, 77.223],[28.638, 77.226],[28.633, 77.222],[28.634, 77.218],[28.640, 77.224],[28.631, 77.220]
+];
+
+function makeDumpPin(lat, lng, status, label) {
+  const color = status === 'done' ? '#22c55e' : status === 'current' ? '#f59e0b' : '#ef4444';
+  const icon = L.divIcon({
+    html: `<div style="width:22px;height:22px;background:${color};border:2.5px solid #fff;border-radius:50%;box-shadow:0 2px 10px rgba(0,0,0,.5)"></div>`,
+    className: '', iconAnchor:[11,11]
+  });
+  return L.marker([lat,lng], { icon }).bindPopup(`<b>${label}</b>`);
+}
+
+function initDriverMap() {
+  driverMap = L.map('driver-map', { zoomControl: false, attributionControl: false })
+    .setView([28.637, 77.223], 15);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(driverMap);
+
+  // Draw route line
+  const routeCoords = STOP_COORDS;
+  L.polyline(routeCoords, { color:'#22c55e', weight:4, opacity:.7, dashArray:'10,6' }).addTo(driverMap);
+
+  // Markers
+  STOPS.forEach((stop, i) => {
+    makeDumpPin(STOP_COORDS[i][0], STOP_COORDS[i][1], stop.status, stop.name).addTo(driverMap);
+  });
+
+  // Driver truck icon
+  const truckIcon = L.divIcon({
+    html: `<div style="background:#22c55e;color:#fff;border-radius:10px;padding:6px 8px;font-size:1.125rem;box-shadow:0 2px 12px rgba(34,197,94,.6);border:2px solid rgba(255,255,255,.5)">🚛</div>`,
+    className: '', iconAnchor:[24,24]
+  });
+  const truckMarker = L.marker([28.636, 77.225], { icon: truckIcon }).addTo(driverMap)
+    .bindPopup('<b>🚛 You are here</b>');
+
+  // Animate truck toward current stop
+  const targetCoord = STOP_COORDS[currentStopIndex];
+  let t = 0;
+  const startCoord = [28.636, 77.225];
+  const animInterval = setInterval(() => {
+    t = Math.min(t + 0.008, 1);
+    const lat = startCoord[0] + (targetCoord[0] - startCoord[0]) * t;
+    const lng = startCoord[1] + (targetCoord[1] - startCoord[1]) * t;
+    truckMarker.setLatLng([lat, lng]);
+    if (t >= 1) clearInterval(animInterval);
+  }, 100);
+}
+
+setTimeout(initDriverMap, 300);
+
+/* ── Screen switch ───────────────────── */
+function showScreen(screen) {
+  document.getElementById('screen-map').style.display = screen === 'map' ? 'block' : 'none';
+  document.getElementById('screen-route').classList.toggle('show', screen === 'route');
+  document.getElementById('nextStopOverlay').style.display = screen === 'map' ? 'block' : 'none';
+  document.getElementById('tab-map').classList.toggle('active', screen === 'map');
+  document.getElementById('tab-route').classList.toggle('active', screen === 'route');
+  if (screen === 'map' && driverMap) setTimeout(() => driverMap.invalidateSize(), 50);
+}
+
+buildStopsList();
+
+/* ── Cross-tab listener: receive CHRONIC_UPDATE from admin ─────── */
+function handleChronicUpdate(payload) {
+  if (!payload || payload.is_chronic === false) return; // ignore unmark
+
+  // Avoid duplicate injection
+  if (STOPS.some(s => s.hotspot_id === payload.hotspot_id || payload.id)) {
+    const exists = STOPS.find(s => s.hotspot_id === (payload.hotspot_id || payload.id));
+    if (exists) {
+      // Already in route — just upgrade its badge
+      exists.badge    = '🔴 CHRONIC ZONE';
+      exists.priority = 'HIGH';
+      buildStopsList();
+      return;
+    }
+  }
+
+  // Estimate distance as placeholder (real TSP would compute this)
+  const distKm = STOP_COORDS.length > 0
+    ? (Math.random() * 3 + 1).toFixed(1) + 'km'
+    : '? km';
+
+  // Build new stop object
+  const newStop = {
+    name:       payload.name,
+    hotspot_id: payload.hotspot_id || payload.id,
+    sub:        `${payload.report_count || '?'} citizen reports · Escalated chronic zone`,
+    badge:      '🔴 CHRONIC ZONE',
+    badgeClass: '',
+    reports:    payload.report_count || 0,
+    dist:       distKm,
+    priority:   'HIGH',
+    status:     'todo',
+    lat:        payload.lat,
+    lng:        payload.lng,
+  };
+
+  // Insert right after current stop so it's next in queue
+  STOPS.splice(currentStopIndex + 1, 0, newStop);
+  document.getElementById('doneCount').textContent = `${doneCount} / ${STOPS.length}`;
+
+  // Add a red chronic pin to the driver map
+  if (driverMap && payload.lat && payload.lng) {
+    const chronicIcon = L.divIcon({
+      html: `<div style="width:26px;height:26px;background:#ef4444;border:3px solid #fff;border-radius:50%;box-shadow:0 0 18px rgba(239,68,68,.8);animation:none;display:flex;align-items:center;justify-content:center;font-size:.7rem">🔴</div>`,
+      className: '', iconAnchor: [13, 13]
+    });
+    L.marker([payload.lat, payload.lng], { icon: chronicIcon })
+      .addTo(driverMap)
+      .bindPopup(`<b>🔴 ${payload.name}</b><br>Chronic — Admin escalated`);
+    STOP_COORDS.splice(currentStopIndex + 1, 0, [payload.lat, payload.lng]);
+  }
+
+  buildStopsList();
+
+  // Flash the stop panel with a driver-side alert
+  showDriverToast(`🔴 NEW CHRONIC STOP ADDED\n"${payload.name}"`);
+
+  // Acknowledge back to admin
+  const ack = { type: 'CHRONIC_ACK', hotspot_id: payload.hotspot_id || payload.id, name: payload.name };
+  try {
+    const bc = new BroadcastChannel('ecoroute-sync');
+    bc.postMessage(ack);
+    bc.close();
+  } catch (e) {}
+  try {
+    localStorage.setItem('ecoroute_sync_chronic_ack', JSON.stringify(ack));
+    setTimeout(() => localStorage.removeItem('ecoroute_sync_chronic_ack'), 900);
+  } catch (e) {}
+}
+
+function showDriverToast(msg) {
+  // Use the mark-clean button area for a brief flash
+  const btn = document.getElementById('markCleanBtn');
+  if (!btn) return;
+  const orig = btn.innerHTML;
+  btn.style.background = 'linear-gradient(135deg,#dc2626,#991b1b)';
+  btn.innerHTML = msg.replace('\n', '<div class="btn-sub">') + '</div>';
+  setTimeout(() => {
+    btn.style.background = '';
+    btn.innerHTML = orig;
+  }, 3500);
+}
+
+// 1. BroadcastChannel listener
+try {
+  const driverBc = new BroadcastChannel('ecoroute-sync');
+  driverBc.addEventListener('message', ev => {
+    if (ev.data && ev.data.type === 'CHRONIC_UPDATE') handleChronicUpdate(ev.data);
+  });
+} catch (e) { /* unavailable */ }
+
+// 2. localStorage fallback
+window.addEventListener('storage', e => {
+  if (e.key === 'ecoroute_sync_chronic' && e.newValue) {
+    try { handleChronicUpdate(JSON.parse(e.newValue)); } catch {}
+  }
+});
+
+/* ── Mark as Cleaned ─────────────────── */
+function markCleaned() {
+  const btn = document.getElementById('markCleanBtn');
+  if (btn.classList.contains('done')) return;
+
+  // Flash effect
+  const flash = document.getElementById('cleanedFlash');
+  flash.classList.add('flash');
+  setTimeout(() => flash.classList.remove('flash'), 300);
+
+  // Update button
+  btn.classList.add('done');
+  btn.innerHTML = `✅ CLEANED — SYNCED TO ADMIN <div class="btn-sub">Pin turned green on admin map</div>`;
+
+  // Update driver map pin to green
+  driverMap.eachLayer(layer => {
+    if (layer instanceof L.Marker) {
+      const latlng = layer.getLatLng();
+      const target = STOP_COORDS[currentStopIndex];
+      if (Math.abs(latlng.lat - target[0]) < 0.001 && Math.abs(latlng.lng - target[1]) < 0.001) {
+        const greenIcon = L.divIcon({
+          html: `<div style="width:24px;height:24px;background:#22c55e;border:3px solid #fff;border-radius:50%;box-shadow:0 0 20px rgba(34,197,94,.7)"></div>`,
+          className: '', iconAnchor:[12,12]
+        });
+        layer.setIcon(greenIcon);
+      }
+    }
+  });
+
+  // ══════════════════════════════════════════════════════
+  //  BROADCAST TO ADMIN MAP (cross-tab realtime sync)
+  // ══════════════════════════════════════════════════════
+  const stop = STOPS[currentStopIndex];
+  const cleanPayload = {
+    type: 'HOTSPOT_CLEANED',
+    hotspot_id: stop.hotspot_id,
+    id: stop.hotspot_id,
+    name: stop.name,
+    cleaned_at: new Date().toISOString()
+  };
+
+  // 1. BroadcastChannel (same-origin tabs, zero-latency)
+  try {
+    const bc = new BroadcastChannel('ecoroute-sync');
+    bc.postMessage(cleanPayload);
+    bc.close();
+  } catch (e) { /* unavailable */ }
+
+  // 2. localStorage event (cross-window fallback)
+  try {
+    localStorage.setItem('ecoroute_sync_cleaned', JSON.stringify(cleanPayload));
+    // Clear after brief delay so next clean triggers a new storage event
+    setTimeout(() => localStorage.removeItem('ecoroute_sync_cleaned'), 800);
+  } catch (e) { /* storage unavailable */ }
+  // ══════════════════════════════════════════════════════
+
+  // Update stop badge
+  document.getElementById('stopBadge').textContent = '✅ CLEANED';
+  document.getElementById('stopBadge').classList.add('green-badge');
+
+  // Update done count
+  doneCount++;
+  document.getElementById('doneCount').textContent = `${doneCount} / 6`;
+
+  // Mark in route list
+  STOPS[currentStopIndex].status = 'done';
+  buildStopsList();
+
+  // After delay, advance to next stop
+  setTimeout(nextStop, 2500);
+}
+
+function nextStop() {
+  // Find next todo
+  let next = -1;
+  for (let i = currentStopIndex + 1; i < STOPS.length; i++) {
+    if (STOPS[i].status === 'todo') { next = i; break; }
+  }
+  if (next === -1) {
+    document.getElementById('stopName').textContent = '🎉 All stops complete!';
+    document.getElementById('stopSub').textContent = 'Great work today. Return to depot.';
+    document.getElementById('markCleanBtn').style.display = 'none';
+    return;
+  }
+
+  currentStopIndex = next;
+  STOPS[next].status = 'current';
+  buildStopsList();
+
+  const stop = STOPS[next];
+  document.getElementById('stopName').textContent = stop.name;
+  document.getElementById('stopSub').textContent = stop.sub;
+  document.getElementById('stopBadge').textContent = stop.badge;
+  document.getElementById('stopBadge').className = `card-stop-badge ${stop.badgeClass}`;
+
+  const btn = document.getElementById('markCleanBtn');
+  btn.classList.remove('done');
+  btn.innerHTML = `✅ MARK AS CLEANED<div class="btn-sub">Tap to update live map &amp; notify admin</div>`;
+
+  // Pan map to next stop
+  if (driverMap) driverMap.panTo(STOP_COORDS[next]);
+}
+</script>
+</body>
+</html>

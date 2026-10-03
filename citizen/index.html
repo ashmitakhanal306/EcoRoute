@@ -1,0 +1,2703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>EcoRoute — Citizen</title>
+  <meta name="description" content="EcoRoute Citizen Dashboard — report dump sites, verify community reports, and track the garbage truck live." />
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#16a34a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="EcoRoute Citizen" />
+  <link rel="apple-touch-icon" href="/assets/icons/icon-192.png" />
+  <link rel="icon" type="image/png" sizes="48x48" href="/assets/icons/favicon.png" />
+  <link rel="icon" type="image/svg+xml" href="/assets/icons/icon.svg" />
+  <link rel="stylesheet" href="../shared/theme.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    html, body { height: 100%; margin: 0; }
+    body { background: #0f172a; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+    #app {
+      position: relative; width: 100%; max-width: 430px;
+      height: 100vh; max-height: 100vh; background: #f8fafc;
+      display: flex; flex-direction: column; overflow: hidden;
+      box-shadow: 0 0 0 1px rgba(255,255,255,.06), 0 32px 80px rgba(0,0,0,.6);
+    }
+    @media (min-width: 500px) {
+      body { padding: 24px 0; }
+      #app { max-height: calc(100vh - 48px); border-radius: 36px; overflow: hidden; }
+    }
+    #guardLoader {
+      position: absolute; inset: 0; z-index: 999;
+      background: linear-gradient(160deg, #f0fdf4, #dcfce7);
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+      transition: opacity .3s;
+    }
+    #guardLoader.hidden { opacity: 0; pointer-events: none; }
+    #guardLoader p { font-size: .8125rem; color: #64748b; }
+    #topbar {
+      flex-shrink: 0; height: 56px; background: #fff; border-bottom: 1px solid #e2e8f0;
+      display: flex; align-items: center; justify-content: space-between; padding: 0 16px; z-index: 10;
+    }
+    .topbar-logo { display: flex; align-items: center; gap: 8px; }
+    .topbar-logo-icon {
+      width: 30px; height: 30px; background: linear-gradient(135deg,#16a34a,#059669);
+      border-radius: 8px; display: flex; align-items: center; justify-content: center;
+    }
+    .topbar-logo-icon svg { width: 17px; height: 17px; }
+    .topbar-name { font-size: .9375rem; font-weight: 800; color: #0f172a; letter-spacing: -.02em; }
+    .topbar-right { display: flex; align-items: center; gap: 10px; }
+    .topbar-trust { font-size: .7rem; font-weight: 700; letter-spacing: .06em; color: #16a34a; background: #dcfce7; padding: 3px 9px; border-radius: 999px; text-transform: uppercase; }
+    .avatar-btn { width: 30px; height: 30px; border-radius: 50%; background: #16a34a; color: #fff; font-size: .8rem; font-weight: 800; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px solid #dcfce7; }
+    #panels { flex: 1; overflow: hidden; position: relative; }
+    .tab-panel { position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden; display: none; -webkit-overflow-scrolling: touch; }
+    .tab-panel.active { display: flex; flex-direction: column; }
+    #bottomNav {
+      flex-shrink: 0; height: 64px; background: #fff; border-top: 1px solid #e2e8f0;
+      display: grid; grid-template-columns: repeat(4,1fr); z-index: 10;
+    }
+    .nav-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; cursor: pointer; transition: all .15s; color: #94a3b8; border: none; background: none; padding: 8px 0; }
+    .nav-btn svg { width: 22px; height: 22px; transition: transform .15s var(--ease-spring); }
+    .nav-btn span { font-size: .625rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+    .nav-btn.active { color: #16a34a; }
+    .nav-btn.active svg { transform: scale(1.12); }
+    .nav-btn.nav-report { color: #fff; position: relative; }
+    .nav-report-bg {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%,-60%);
+      width: 50px; height: 50px; background: linear-gradient(135deg,#16a34a,#059669);
+      border-radius: 50%; box-shadow: 0 4px 18px rgba(22,163,74,.4);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .nav-report-bg svg { width: 24px; height: 24px; color: #fff; }
+    .nav-btn.nav-report span { color: #16a34a; margin-top: 26px; }
+    #tab-home { gap: 0; }
+    #mapWrap { flex-shrink: 0; height: 48%; position: relative; background: #e2e8f0; }
+    #map { width: 100%; height: 100%; z-index: 1; }
+    .map-pill {
+      position: absolute; z-index: 5; top: 10px;
+      display: flex; align-items: center; gap: 6px;
+      background: rgba(255,255,255,.9); backdrop-filter: blur(8px);
+      border-radius: 999px; padding: 5px 12px 5px 8px;
+      font-size: .72rem; font-weight: 600; color: #0f172a;
+      box-shadow: 0 2px 8px rgba(0,0,0,.12);
+    }
+    .map-pill-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .map-pill.left { left: 10px; } .map-pill.right { right: 10px; }
+    #truckPill { display: none; } #truckPill.visible { display: flex; }
+    #locateBtn {
+      position: absolute; z-index: 5; bottom: 12px; right: 12px;
+      width: 38px; height: 38px; border-radius: 50%; background: #fff; border: none; cursor: pointer;
+      box-shadow: 0 2px 10px rgba(0,0,0,.15); display: flex; align-items: center; justify-content: center; transition: background .15s;
+    }
+    #locateBtn:hover { background: #f0fdf4; }
+    #locateBtn svg { width: 18px; height: 18px; color: #16a34a; }
+    #feed { flex: 1; overflow-y: auto; background: #f8fafc; padding: 0; }
+    .feed-header {
+      position: sticky; top: 0; z-index: 2; background: #fff; border-bottom: 1px solid #e2e8f0;
+      padding: 10px 16px; display: flex; align-items: center; justify-content: space-between;
+    }
+    .feed-title { font-size: .8125rem; font-weight: 800; color: #0f172a; }
+    .feed-count { font-size: .7rem; color: #64748b; font-weight: 600; background: #f1f5f9; padding: 2px 8px; border-radius: 999px; }
+    .report-card { background: #fff; border-bottom: 1px solid #f1f5f9; padding: 12px 14px; display: grid; grid-template-columns: 68px 1fr; gap: 10px; cursor: pointer; transition: background .12s; }
+    .report-card:hover { background: #f8fafc; }
+    .report-card:active { background: #f0fdf4; }
+    .report-photo { width: 68px; height: 68px; border-radius: 10px; object-fit: cover; background: #e2e8f0; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+    .report-photo img { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; }
+    .report-body { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+    .report-row1 { display: flex; align-items: center; gap: 6px; }
+    .report-status { font-size: .6rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; padding: 2px 7px; border-radius: 999px; flex-shrink: 0; }
+    .status-pending { background: #fef3c7; color: #d97706; }
+    .status-verified { background: #dcfce7; color: #16a34a; }
+    .status-cleaned { background: #dbeafe; color: #2563eb; }
+    .report-addr { font-size: .7875rem; font-weight: 600; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .report-meta { font-size: .7rem; color: #64748b; }
+    .report-actions { display: flex; align-items: center; justify-content: space-between; margin-top: 2px; }
+    .upvote-btn { display: flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 999px; border: 1.5px solid #e2e8f0; background: #fff; cursor: pointer; font-size: .72rem; font-weight: 700; color: #64748b; transition: all .15s var(--ease-spring); font-family: var(--font-sans); }
+    .upvote-btn:hover { border-color: #16a34a; color: #16a34a; background: #f0fdf4; }
+    .upvote-btn.voted { background: #dcfce7; border-color: #16a34a; color: #16a34a; }
+    .upvote-btn.own-report { opacity: .4; cursor: not-allowed; pointer-events: none; }
+    .upvote-btn svg { width: 13px; height: 13px; }
+    .feed-empty { padding: 32px 16px; text-align: center; color: #94a3b8; font-size: .825rem; }
+    .feed-empty-icon { font-size: 2.5rem; display: block; margin-bottom: 8px; }
+    /* ── REPORT TAB ─────────────────────────────────────── */
+    #tab-report { background: #111827; overflow-y: auto; gap: 0; padding: 0; }
+
+    /* Camera zone */
+    #cameraZone {
+      position: relative; width: 100%; flex-shrink: 0;
+      background: #000; overflow: hidden;
+      aspect-ratio: 4/3;
+      display: flex; align-items: center; justify-content: center;
+    }
+    #photoPreview {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      object-fit: cover; display: none;
+    }
+    #cameraBtn {
+      position: relative; z-index: 2;
+      display: flex; flex-direction: column; align-items: center; gap: 14px;
+      cursor: pointer;
+    }
+    #cameraBtn input[type=file] {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+    }
+    .cam-ring {
+      width: 90px; height: 90px; border-radius: 50%;
+      border: 3px solid rgba(255,255,255,.3);
+      display: flex; align-items: center; justify-content: center;
+      transition: border-color .2s, background .2s;
+    }
+    .cam-ring:hover { border-color: rgba(34,197,94,.7); background: rgba(34,197,94,.1); }
+    .cam-ring svg { width: 44px; height: 44px; color: rgba(255,255,255,.85); }
+    #cameraBtn p { color: rgba(255,255,255,.55); font-size: .8125rem; font-weight: 600; pointer-events: none; }
+
+    /* Camera overlay buttons */
+    #retakeBtn {
+      position: absolute; top: 12px; left: 12px; z-index: 5;
+      display: none; align-items: center; gap: 6px; padding: 7px 12px;
+      background: rgba(0,0,0,.55); backdrop-filter: blur(6px);
+      border: 1px solid rgba(255,255,255,.15); border-radius: 999px;
+      color: #fff; font-size: .75rem; font-weight: 700; cursor: pointer;
+      font-family: var(--font-sans);
+    }
+    #retakeBtn.show { display: flex; }
+    #compressChip {
+      position: absolute; bottom: 10px; right: 10px; z-index: 5;
+      display: none; align-items: center; gap: 5px; padding: 5px 10px;
+      background: rgba(0,0,0,.6); border-radius: 999px;
+      color: #86efac; font-size: .68rem; font-weight: 700;
+    }
+    #compressChip.show { display: flex; }
+    #compressChip svg { width: 11px; height: 11px; }
+
+    /* Bottom form card */
+    #reportFormCard {
+      background: #1e293b; border-radius: 24px 24px 0 0;
+      margin-top: -20px; position: relative; z-index: 3;
+      padding: 20px 18px 24px; display: flex; flex-direction: column; gap: 14px;
+      flex: 1;
+    }
+    .rep-card-handle {
+      width: 36px; height: 4px; border-radius: 2px;
+      background: rgba(255,255,255,.12); margin: 0 auto 6px;
+    }
+    .rep-card-title { font-size: 1rem; font-weight: 800; color: #f8fafc; }
+    .rep-card-sub   { font-size: .78rem; color: #64748b; margin-top: -8px; }
+
+    /* Location chip */
+    #locChip {
+      display: flex; align-items: center; gap: 8px; padding: 10px 14px;
+      border-radius: 12px; border: 1.5px solid rgba(255,255,255,.08);
+      background: rgba(255,255,255,.04); transition: all .2s;
+    }
+    #locChip.detected { border-color: rgba(34,197,94,.35); background: rgba(34,197,94,.08); }
+    #locChip.error    { border-color: rgba(239,68,68,.35);  background: rgba(239,68,68,.08); }
+    .loc-chip-icon { font-size: 1.1rem; flex-shrink: 0; }
+    .loc-chip-text {
+      flex: 1; min-width: 0;
+    }
+    .loc-chip-label { font-size: .72rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: .06em; }
+    .loc-chip-value { font-size: .8125rem; font-weight: 600; color: #f8fafc; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .loc-chip-value.muted { color: #475569; }
+    .loc-chip-btn {
+      flex-shrink: 0; font-size: .7rem; font-weight: 700; color: #34d399;
+      background: none; border: none; cursor: pointer; font-family: var(--font-sans);
+      padding: 4px 6px;
+    }
+    .loc-spinner { width: 14px; height: 14px; border: 2px solid rgba(34,197,94,.25); border-top-color: #34d399; border-radius: 50%; animation: spin .7s linear infinite; flex-shrink: 0; }
+
+    /* Fallback pin map */
+    #fallbackMapWrap {
+      display: none; border-radius: 12px; overflow: hidden;
+      border: 1.5px solid rgba(255,255,255,.1); flex-shrink: 0;
+    }
+    #fallbackMapWrap.show { display: block; }
+    #fallbackMap { height: 160px; }
+    .fallback-note { font-size: .72rem; color: #64748b; text-align: center; padding-top: 6px; }
+
+    /* Description */
+    .rep-desc-field {
+      display: flex; flex-direction: column; gap: 5px;
+    }
+    .rep-desc-field label { font-size: .72rem; font-weight: 700; color: #64748b; }
+    .rep-desc-field textarea {
+      padding: 11px 13px; background: rgba(255,255,255,.05);
+      border: 1.5px solid rgba(255,255,255,.08); border-radius: 10px;
+      color: #f8fafc; font-size: .9rem; font-family: var(--font-sans); outline: none;
+      resize: none; min-height: 64px; transition: border-color .15s;
+    }
+    .rep-desc-field textarea::placeholder { color: #475569; }
+    .rep-desc-field textarea:focus { border-color: rgba(34,197,94,.45); }
+
+    /* Submit button */
+    .submit-btn {
+      padding: 15px; background: linear-gradient(135deg,#16a34a,#059669);
+      color: #fff; font-size: 1rem; font-weight: 800; border-radius: 14px;
+      border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 9px;
+      font-family: var(--font-sans); box-shadow: 0 4px 22px rgba(22,163,74,.4);
+      transition: transform .15s, box-shadow .15s, opacity .15s;
+    }
+    .submit-btn:not(:disabled):hover { transform: translateY(-1px); box-shadow: 0 8px 28px rgba(22,163,74,.5); }
+    .submit-btn:disabled { opacity: .45; cursor: not-allowed; }
+    .submit-btn.loading { opacity: .7; pointer-events: none; }
+    .submit-btn .spin { animation: spin .7s linear infinite; }
+    .submit-btn svg { width: 19px; height: 19px; }
+
+    /* Success screen */
+    #reportSuccess {
+      display: none; flex-direction: column; align-items: center; justify-content: center;
+      padding: 40px 24px 32px; gap: 16px; text-align: center;
+      background: #111827; min-height: 100%;
+    }
+    #reportSuccess.show { display: flex; animation: fadeInUp .35s var(--ease-out) both; }
+    .success-burst {
+      position: relative; width: 100px; height: 100px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .success-burst-ring {
+      position: absolute; inset: 0; border-radius: 50%;
+      border: 3px solid #16a34a; opacity: 0;
+      animation: burstRing .6s var(--ease-out) .1s forwards;
+    }
+    .success-burst-ring2 {
+      position: absolute; inset: -12px; border-radius: 50%;
+      border: 2px solid rgba(22,163,74,.4); opacity: 0;
+      animation: burstRing .8s var(--ease-out) .25s forwards;
+    }
+    @keyframes burstRing {
+      0%   { transform: scale(0); opacity: .8; }
+      100% { transform: scale(1.1); opacity: 0; }
+    }
+    .success-check {
+      width: 70px; height: 70px; border-radius: 50%;
+      background: linear-gradient(135deg,#16a34a,#059669);
+      display: flex; align-items: center; justify-content: center;
+      animation: popIn .4s var(--ease-spring) both;
+      box-shadow: 0 6px 24px rgba(22,163,74,.5);
+    }
+    @keyframes popIn {
+      0%   { transform: scale(0) rotate(-15deg); opacity: 0; }
+      70%  { transform: scale(1.12) rotate(3deg); opacity: 1; }
+      100% { transform: scale(1) rotate(0deg); }
+    }
+    .success-check svg { width: 36px; height: 36px; color: #fff; }
+    .success-particles {
+      position: absolute; inset: 0; pointer-events: none;
+    }
+    .s-dot {
+      position: absolute; width: 6px; height: 6px; border-radius: 50%;
+      background: #22c55e; top: 50%; left: 50%;
+      transform-origin: 0 0;
+    }
+    .success-title {
+      font-size: 1.25rem; font-weight: 900; color: #f8fafc;
+      letter-spacing: -.02em;
+    }
+    .success-msg {
+      font-size: .875rem; color: #64748b; line-height: 1.55; max-width: 280px;
+    }
+    .success-badge {
+      display: flex; align-items: center; gap: 8px; padding: 10px 18px;
+      border-radius: 999px; font-size: .8rem; font-weight: 700;
+    }
+    .success-badge.community { background: rgba(250,204,21,.12); color: #fbbf24; border: 1px solid rgba(250,204,21,.25); }
+    .success-badge.trusted   { background: rgba(34,197,94,.12);  color: #34d399; border: 1px solid rgba(34,197,94,.25); }
+    .success-badge svg { width: 16px; height: 16px; }
+    .success-actions { display: flex; flex-direction: column; gap: 10px; width: 100%; margin-top: 8px; }
+    .btn-outline-white {
+      padding: 12px; border: 1.5px solid rgba(255,255,255,.12); border-radius: 12px;
+      background: rgba(255,255,255,.05); color: #94a3b8;
+      font-size: .875rem; font-weight: 700; cursor: pointer;
+      font-family: var(--font-sans); transition: all .15s;
+    }
+    .btn-outline-white:hover { border-color: rgba(255,255,255,.25); color: #f8fafc; }
+    /* ── WHATSAPP-STYLE CHAT TAB ── */
+    #tab-chat {
+      background-color: #efeae2;
+      background-image: radial-gradient(#d6cec3 0.75px, transparent 0.75px), radial-gradient(#d6cec3 0.75px, #efeae2 0.75px);
+      background-size: 20px 20px;
+      background-position: 0 0, 10px 10px;
+      display: none;
+      flex-direction: column;
+      height: 100%;
+      overflow: hidden;
+    }
+    .chat-header {
+      background: #075e54;
+      color: #fff;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.18);
+      z-index: 5;
+    }
+    .chat-header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+    .chat-avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: #128c7e;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1.5px solid rgba(255,255,255,0.4);
+      flex-shrink: 0;
+    }
+    .chat-avatar svg { width: 22px; height: 22px; color: #fff; }
+    .chat-bot-name { font-size: .92rem; font-weight: 800; color: #fff; line-height: 1.2; }
+    .chat-bot-sub  { font-size: .68rem; color: #a7f3d0; display: flex; align-items: center; gap: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .online-dot { width: 7px; height: 7px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 6px #22c55e; display: inline-block; flex-shrink: 0; }
+    
+    .chat-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      flex-shrink: 0;
+    }
+    .ai-mode-pill {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: .68rem;
+      font-weight: 700;
+      padding: 4px 9px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.15);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.3);
+      cursor: pointer;
+      transition: all .15s;
+      font-family: var(--font-sans);
+    }
+    .ai-mode-pill:hover { background: rgba(255,255,255,0.25); }
+    .ai-mode-pill.active {
+      background: #25d366;
+      color: #064e3b;
+      border-color: #25d366;
+      box-shadow: 0 0 8px rgba(37,211,102,0.5);
+    }
+    .chat-clear-btn {
+      background: none;
+      border: none;
+      color: rgba(255,255,255,0.75);
+      cursor: pointer;
+      padding: 5px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all .15s;
+    }
+    .chat-clear-btn:hover { color: #fff; background: rgba(255,255,255,0.18); }
+    .chat-clear-btn svg { width: 17px; height: 17px; }
+
+    #chatMessages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* Date badge divider */
+    .chat-date-badge {
+      align-self: center;
+      background: rgba(255,255,255,0.85);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+      font-size: .67rem;
+      font-weight: 700;
+      color: #64748b;
+      padding: 3px 10px;
+      border-radius: 999px;
+      margin: 4px 0 6px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    /* Bubbles */
+    .chat-msg {
+      max-width: 88%;
+      padding: 9px 12px 6px;
+      font-size: .835rem;
+      line-height: 1.45;
+      position: relative;
+      animation: fadeInUp .18s var(--ease-out) both;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.12);
+    }
+    .chat-msg.user {
+      background: #d9fdd3;
+      color: #111827;
+      border-radius: 14px 14px 2px 14px;
+      align-self: flex-end;
+    }
+    .chat-msg.bot {
+      background: #ffffff;
+      color: #0f172a;
+      border-radius: 14px 14px 14px 2px;
+      align-self: flex-start;
+      border: 1px solid rgba(0,0,0,0.04);
+    }
+    .chat-text {
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .chat-time {
+      font-size: .64rem;
+      color: #64748b;
+      margin-top: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 3px;
+    }
+    .chat-time svg { width: 13px; height: 13px; color: #3b82f6; }
+
+    /* Bot Reply Rich Segregation Card */
+    .segregation-card {
+      margin: 6px 0 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+    .bin-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 12px;
+      border-radius: 10px;
+      font-size: .78rem;
+      font-weight: 800;
+      letter-spacing: .02em;
+    }
+    .bin-chip.bin-green { background: #dcfce7; border: 1.5px solid #86efac; color: #166534; }
+    .bin-chip.bin-blue  { background: #dbeafe; border: 1.5px solid #93c5fd; color: #1e40af; }
+    .bin-chip.bin-red   { background: #fee2e2; border: 1.5px solid #fca5a5; color: #991b1b; }
+    .bin-chip.bin-black { background: #f1f5f9; border: 1.5px solid #cbd5e1; color: #0f172a; }
+
+    .bin-chip-icon { font-size: 1.15rem; }
+    .bin-chip-title { font-weight: 800; font-size: .8rem; }
+    .item-detected-tag {
+      font-size: .72rem;
+      color: #475569;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .guidelines-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .guideline-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+      font-size: .76rem;
+      color: #334155;
+      line-height: 1.35;
+    }
+    .guideline-bullet {
+      color: #16a34a;
+      font-weight: 800;
+      flex-shrink: 0;
+      font-size: .75rem;
+      margin-top: 1px;
+    }
+    .explanation-text {
+      font-size: .74rem;
+      color: #475569;
+      line-height: 1.4;
+      font-style: italic;
+      padding: 0 2px;
+    }
+
+    .source-tag {
+      font-size: .62rem;
+      font-weight: 700;
+      letter-spacing: .03em;
+      color: #94a3b8;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    /* Typing indicator bubble */
+    .typing-bubble {
+      display: none;
+      align-self: flex-start;
+      background: #fff;
+      border-radius: 14px 14px 14px 2px;
+      padding: 10px 14px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+      align-items: center;
+      gap: 4px;
+      width: fit-content;
+      margin-left: 12px;
+      margin-bottom: 6px;
+    }
+    .typing-bubble.show { display: flex; animation: fadeInUp .15s ease both; }
+    .typing-dot { width: 6px; height: 6px; border-radius: 50%; background: #94a3b8; animation: bounceDot 1.2s infinite; }
+    .typing-dot:nth-child(2) { animation-delay: .2s; }
+    .typing-dot:nth-child(3) { animation-delay: .4s; }
+
+    /* Quick suggestion chips bar */
+    .suggestion-chips-bar {
+      padding: 6px 12px 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+      background: transparent;
+      z-index: 4;
+    }
+    .suggestion-chips-bar::-webkit-scrollbar { display: none; }
+    .suggestion-chip {
+      flex-shrink: 0;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(4px);
+      border: 1px solid #cbd5e1;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: .74rem;
+      font-weight: 700;
+      color: #1e293b;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      transition: all .15s var(--ease-spring);
+      font-family: var(--font-sans);
+    }
+    .suggestion-chip:hover {
+      background: #dcfce7;
+      border-color: #16a34a;
+      color: #15803d;
+      transform: translateY(-1px);
+    }
+    .suggestion-chip:active { transform: scale(0.96); }
+
+    /* Chat Form & Input Bar */
+    #chatForm {
+      background: #f0f2f5;
+      padding: 8px 10px 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-top: 1px solid #e2e8f0;
+      z-index: 5;
+    }
+    .chat-input-wrap {
+      flex: 1;
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    #chatInput {
+      width: 100%;
+      padding: 10px 16px;
+      border: 1.5px solid transparent;
+      background: #fff;
+      border-radius: 999px;
+      font-size: .875rem;
+      font-family: var(--font-sans);
+      outline: none;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+      transition: border-color .15s, box-shadow .15s;
+      box-sizing: border-box;
+    }
+    #chatInput:focus {
+      border-color: #16a34a;
+      box-shadow: 0 0 0 3px rgba(22,163,74,0.15);
+    }
+    #chatSend {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #00a884;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 2px 6px rgba(0,168,132,0.35);
+      transition: transform .15s, background .15s;
+    }
+    #chatSend:hover { background: #075e54; transform: scale(1.05); }
+    #chatSend:active { transform: scale(0.95); }
+    #chatSend svg { width: 18px; height: 18px; color: #fff; margin-left: 2px; }
+    /* ── PROFILE TAB ── */
+    #tab-profile { background: #f8fafc; gap: 0; padding-bottom: 24px; overflow-y: auto; }
+    
+    .profile-hero {
+      background: linear-gradient(150deg, #052e16 0%, #064e27 60%, #0a6630 100%);
+      padding: 20px 16px 22px;
+      color: #fff;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .profile-header-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .profile-user-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+    .profile-avatar-lg {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      border: 2.5px solid rgba(255,255,255,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.35rem;
+      font-weight: 900;
+      color: #fff;
+      flex-shrink: 0;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    }
+    .profile-user-info {
+      min-width: 0;
+    }
+    .profile-fullname {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .profile-email {
+      font-size: .75rem;
+      color: rgba(255,255,255,0.7);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 1px;
+    }
+    .profile-role-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(34,197,94,0.2);
+      color: #86efac;
+      border: 1px solid rgba(34,197,94,0.35);
+      padding: 2px 9px;
+      border-radius: 999px;
+      font-size: .65rem;
+      font-weight: 800;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+    .profile-logout-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 13px;
+      background: rgba(239, 68, 68, 0.18);
+      color: #fca5a5;
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      border-radius: 999px;
+      font-size: .72rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: var(--font-sans);
+      transition: all .15s;
+      flex-shrink: 0;
+    }
+    .profile-logout-btn:hover {
+      background: rgba(239, 68, 68, 0.32);
+      color: #fff;
+      border-color: #ef4444;
+    }
+    .profile-logout-btn svg { width: 14px; height: 14px; }
+
+    /* Trust Ring Card */
+    .trust-card {
+      background: #fff;
+      margin: 14px 14px 0;
+      border-radius: 20px;
+      padding: 22px 18px 18px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+      border: 1px solid #e2e8f0;
+      position: relative;
+    }
+    .trust-ring-wrap {
+      position: relative;
+      width: 140px;
+      height: 140px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .trust-ring-svg {
+      width: 140px;
+      height: 140px;
+      transform: rotate(-90deg);
+    }
+    .trust-track-circle {
+      fill: none;
+      stroke-width: 10;
+      transition: stroke .3s;
+    }
+    .trust-fill-circle {
+      fill: none;
+      stroke-width: 10;
+      stroke-linecap: round;
+      stroke-dasharray: 351.86;
+      stroke-dashoffset: 351.86;
+      transition: stroke-dashoffset 0.85s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.4s ease;
+    }
+    .trust-center-info {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+    .trust-score-num {
+      font-size: 2.25rem;
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: -.03em;
+      transition: color .3s;
+    }
+    .trust-score-sub {
+      font-size: .65rem;
+      font-weight: 800;
+      color: #94a3b8;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      margin-top: 3px;
+    }
+    .trust-badge-pill {
+      margin-top: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 14px;
+      border-radius: 999px;
+      font-size: .75rem;
+      font-weight: 800;
+      letter-spacing: .02em;
+      transition: all .25s var(--ease-spring);
+    }
+    .trust-badge-pill.trusted {
+      background: #dcfce7;
+      color: #15803d;
+      border: 1.5px solid #86efac;
+      box-shadow: 0 0 14px rgba(34,197,94,0.3);
+      animation: pulseGlow 2.5s infinite;
+    }
+    .trust-badge-pill.contributor {
+      background: #fef3c7;
+      color: #b45309;
+      border: 1.5px solid #fde68a;
+    }
+    .trust-badge-pill.low {
+      background: #fee2e2;
+      color: #b91c1c;
+      border: 1.5px solid #fca5a5;
+    }
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 10px rgba(34,197,94,0.25); }
+      50% { box-shadow: 0 0 20px rgba(34,197,94,0.5); }
+    }
+
+    /* Stats Grid */
+    .profile-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin: 12px 14px 0;
+    }
+    .stat-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 14px 10px;
+      text-align: center;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+    .stat-card-icon {
+      font-size: 1.25rem;
+      margin-bottom: 2px;
+    }
+    .stat-card-num {
+      font-size: 1.35rem;
+      font-weight: 900;
+      color: #0f172a;
+      line-height: 1.1;
+    }
+    .stat-card-label {
+      font-size: .64rem;
+      font-weight: 700;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+
+    /* Explanation Card */
+    .explanation-card {
+      background: #fff;
+      margin: 12px 14px 0;
+      border-radius: 16px;
+      padding: 16px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .expl-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .expl-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: #f0fdf4;
+      color: #16a34a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .95rem;
+      border: 1px solid #bbf7d0;
+      flex-shrink: 0;
+    }
+    .expl-title {
+      font-size: .85rem;
+      font-weight: 800;
+      color: #0f172a;
+    }
+    .expl-text {
+      font-size: .78rem;
+      color: #475569;
+      line-height: 1.5;
+    }
+    .expl-points-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 6px;
+      margin-top: 2px;
+    }
+    .expl-pill {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 8px 6px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .expl-pill-pts {
+      font-size: .82rem;
+      font-weight: 900;
+      color: #16a34a;
+    }
+    .expl-pill-desc {
+      font-size: .62rem;
+      color: #64748b;
+      font-weight: 600;
+      line-height: 1.25;
+    }
+
+    /* My Reports Section */
+    .my-reports-section {
+      margin: 16px 14px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .my-reports-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 4px;
+    }
+    .my-reports-title {
+      font-size: .92rem;
+      font-weight: 800;
+      color: #0f172a;
+    }
+    .my-reports-count {
+      font-size: .7rem;
+      font-weight: 700;
+      color: #16a34a;
+      background: #dcfce7;
+      padding: 2px 8px;
+      border-radius: 999px;
+    }
+    .my-reports-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .my-report-card {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 11px 13px;
+      display: grid;
+      grid-template-columns: 60px 1fr;
+      gap: 10px;
+      cursor: pointer;
+      transition: all .15s;
+    }
+    .my-report-card:hover {
+      border-color: #cbd5e1;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .my-report-thumb {
+      width: 60px;
+      height: 60px;
+      border-radius: 10px;
+      background: #f1f5f9;
+      object-fit: cover;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .my-report-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .my-report-details {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 0;
+    }
+    .my-report-row1 {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+    .my-rep-status {
+      font-size: .62rem;
+      font-weight: 800;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border-radius: 999px;
+      flex-shrink: 0;
+    }
+    .my-rep-status.pending  { background: #fef3c7; color: #b45309; }
+    .my-rep-status.verified { background: #dcfce7; color: #16a34a; }
+    .my-rep-status.cleaned  { background: #dbeafe; color: #2563eb; }
+    .my-report-desc {
+      font-size: .8rem;
+      font-weight: 600;
+      color: #0f172a;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .my-report-meta {
+      font-size: .7rem;
+      color: #64748b;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 2px;
+    }
+    .my-report-upvotes {
+      font-weight: 700;
+      color: #16a34a;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .my-reports-empty {
+      background: #fff;
+      border: 1px dashed #cbd5e1;
+      border-radius: 16px;
+      padding: 30px 16px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      color: #64748b;
+    }
+    .my-reports-empty-icon { font-size: 2.2rem; }
+    .my-reports-empty-title { font-size: .875rem; font-weight: 800; color: #0f172a; }
+    .my-reports-empty-sub { font-size: .75rem; color: #94a3b8; max-width: 240px; }
+    .my-reports-create-btn {
+      margin-top: 6px;
+      padding: 8px 16px;
+      background: #16a34a;
+      color: #fff;
+      border: none;
+      border-radius: 999px;
+      font-size: .75rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: var(--font-sans);
+      transition: background .15s;
+    }
+    .my-reports-create-btn:hover { background: #15803d; }
+    #toast { position: absolute; bottom: 76px; left: 50%; transform: translateX(-50%) translateY(12px); background: #111d11; color: #d1fae5; border: 1px solid rgba(34,197,94,.25); border-radius: 10px; padding: 10px 18px; font-size: .825rem; font-weight: 600; white-space: nowrap; z-index: 50; opacity: 0; pointer-events: none; transition: opacity .22s, transform .22s var(--ease-out); max-width: 90%; }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .user-dot { width: 14px; height: 14px; border-radius: 50%; background: #2563eb; border: 2.5px solid #fff; box-shadow: 0 0 0 4px rgba(37,99,235,.2); }
+    .truck-marker { background: transparent; border: none; }
+    .truck-marker-inner { width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg,#16a34a,#059669); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; box-shadow: 0 2px 10px rgba(22,163,74,.4); transition: transform .4s var(--ease-out); }
+  </style>
+</head>
+<body>
+<div id="app">
+  <div id="guardLoader">
+    <div class="spinner spinner--dark spinner--lg"></div>
+    <p>Verifying access...</p>
+  </div>
+  <header id="topbar">
+    <div class="topbar-logo">
+      <div class="topbar-logo-icon">
+        <svg viewBox="0 0 44 44" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round">
+          <path d="M22 6 C29 6 37 13 37 22 C37 31 30 37 22 37 C16 37 11 32 12 26 C13 20 18 16 22 16 C27 16 31 20 31 24 C31 28 27 31 23 30"/>
+          <path d="M22 37 L22 41"/>
+        </svg>
+      </div>
+      <span class="topbar-name">EcoRoute</span>
+    </div>
+    <div class="topbar-right">
+      <span class="topbar-trust" id="trustBadge">&#11088; 50 pts</span>
+      <div class="avatar-btn" id="avatarBtn">?</div>
+    </div>
+  </header>
+  <div id="panels">
+    <!-- HOME TAB -->
+    <div class="tab-panel active" id="tab-home">
+      <div id="mapWrap">
+        <div id="map"></div>
+        <div class="map-pill left"><div class="map-pill-dot" style="background:#2563eb"></div><span>You</span></div>
+        <div class="map-pill right" id="truckPill"><div class="map-pill-dot" style="background:#16a34a"></div><span>Truck</span></div>
+        <button id="locateBtn" title="Re-centre on my location">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8" stroke-width="1.5"/>
+          </svg>
+        </button>
+      </div>
+      <div id="feed">
+        <div class="feed-header">
+          <span class="feed-title">Community Reports</span>
+          <span class="feed-count" id="feedCount">0</span>
+        </div>
+        <div id="feedList">
+          <div class="skeleton-card" style="display:flex;gap:12px;padding:12px;background:#fff;border-radius:14px;border:1px solid #e2e8f0;margin-bottom:8px;">
+            <div class="skeleton-light" style="width:64px;height:64px;border-radius:10px;flex-shrink:0;"></div>
+            <div style="flex:1;display:flex;flex-direction:column;gap:8px;justify-content:center;">
+              <div class="skeleton-light" style="height:12px;width:35%;border-radius:4px;"></div>
+              <div class="skeleton-light" style="height:14px;width:80%;border-radius:4px;"></div>
+              <div class="skeleton-light" style="height:10px;width:55%;border-radius:4px;"></div>
+            </div>
+          </div>
+          <div class="skeleton-card" style="display:flex;gap:12px;padding:12px;background:#fff;border-radius:14px;border:1px solid #e2e8f0;margin-bottom:8px;">
+            <div class="skeleton-light" style="width:64px;height:64px;border-radius:10px;flex-shrink:0;"></div>
+            <div style="flex:1;display:flex;flex-direction:column;gap:8px;justify-content:center;">
+              <div class="skeleton-light" style="height:12px;width:40%;border-radius:4px;"></div>
+              <div class="skeleton-light" style="height:14px;width:70%;border-radius:4px;"></div>
+              <div class="skeleton-light" style="height:10px;width:50%;border-radius:4px;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- REPORT TAB -->
+    <div class="tab-panel" id="tab-report">
+
+      <!-- Camera zone -->
+      <div id="cameraZone">
+        <img id="photoPreview" alt="Captured photo" />
+        <!-- Camera button (hidden after photo selected) -->
+        <label id="cameraBtn">
+          <input type="file" id="photoFile" accept="image/*" capture="environment" />
+          <div class="cam-ring">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+              <circle cx="12" cy="13" r="4"/>
+            </svg>
+          </div>
+          <p>Tap to capture photo</p>
+        </label>
+        <!-- Overlay buttons -->
+        <button id="retakeBtn" type="button">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          Retake
+        </button>
+        <div id="compressChip">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3 7h7l-6 4 2 7-6-4-6 4 2-7-6-4h7z"/></svg>
+          Compressed
+        </div>
+      </div>
+
+      <!-- Form card -->
+      <div id="reportFormCard">
+        <div class="rep-card-handle"></div>
+        <div class="rep-card-title">Report a Dump Site</div>
+        <div class="rep-card-sub">Your report helps keep the city clean &#127807;</div>
+
+        <!-- Location chip -->
+        <div id="locChip">
+          <span class="loc-chip-icon">&#128205;</span>
+          <div class="loc-chip-text">
+            <div class="loc-chip-label">Location</div>
+            <div class="loc-chip-value muted" id="locChipValue">Detecting&#8230;</div>
+          </div>
+          <div class="loc-spinner" id="locSpinner"></div>
+          <button class="loc-chip-btn" id="retryLocBtn" type="button" style="display:none">Retry</button>
+        </div>
+
+        <!-- Fallback manual-pin map -->
+        <div id="fallbackMapWrap">
+          <div id="fallbackMap"></div>
+          <p class="fallback-note">&#128204; Tap the map to set your report location</p>
+        </div>
+
+        <!-- Description -->
+        <div class="rep-desc-field">
+          <label for="repDesc">Description <span style="color:#475569;font-weight:400">(optional)</span></label>
+          <textarea id="repDesc" rows="2" placeholder="Mixed garbage, large pile, bad smell&#8230;"></textarea>
+        </div>
+
+        <!-- Submit -->
+        <input type="hidden" id="repLat" />
+        <input type="hidden" id="repLng" />
+        <button class="submit-btn" id="submitReportBtn" type="button" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+          Submit Report
+        </button>
+      </div>
+
+      <!-- Success screen -->
+      <div id="reportSuccess">
+        <div class="success-burst">
+          <div class="success-burst-ring"></div>
+          <div class="success-burst-ring2"></div>
+          <div class="success-check">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          </div>
+          <div class="success-particles" id="successParticles"></div>
+        </div>
+        <div class="success-title">Report Submitted!</div>
+        <div class="success-msg" id="successMsg">Your report is live in the community feed.</div>
+        <div class="success-badge" id="successBadge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+          <span id="successBadgeText">Sent to community verification</span>
+        </div>
+        <div class="success-actions">
+          <button class="submit-btn" id="reportAgainBtn" type="button">Report Another Dump Site</button>
+          <button class="btn-outline-white" id="goHomeBtn" type="button">Back to Home Feed</button>
+        </div>
+      </div>
+    </div>
+    <!-- CHAT TAB -->
+    <div class="tab-panel" id="tab-chat">
+      <div class="chat-header">
+        <div class="chat-header-left">
+          <div class="chat-avatar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2C9.24 2 7 4.24 7 7c0 2.07 1.18 3.87 2.9 4.77L9 21h6l-.9-9.23C15.82 10.87 17 9.07 17 7c0-2.76-2.24-5-5-5z"/>
+            </svg>
+          </div>
+          <div>
+            <div class="chat-bot-name">EcoBot</div>
+            <div class="chat-bot-sub"><span class="online-dot"></span>Online &bull; SWM 2016 Assistant</div>
+          </div>
+        </div>
+        <div class="chat-header-actions">
+          <button class="ai-mode-pill" id="aiModeToggle" title="Toggle AI Mode vs Local SWM 2016 Knowledge Base" type="button">
+            <span id="aiModeIcon">⚡</span>
+            <span id="aiModeText">Local</span>
+          </button>
+          <button class="chat-clear-btn" id="clearChatBtn" title="Clear chat history" type="button" aria-label="Clear chat">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div id="chatMessages">
+        <div class="chat-date-badge">Today</div>
+      </div>
+      <div class="typing-bubble" id="typingIndicator">
+        <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
+      </div>
+      <!-- 4 Quick-suggestion chips -->
+      <div class="suggestion-chips-bar" id="suggestionChips">
+        <button class="suggestion-chip" data-query="Broken glass?" type="button">
+          <span>🔨</span> Broken glass?
+        </button>
+        <button class="suggestion-chip" data-query="Old batteries?" type="button">
+          <span>🔋</span> Old batteries?
+        </button>
+        <button class="suggestion-chip" data-query="Food waste?" type="button">
+          <span>🍏</span> Food waste?
+        </button>
+        <button class="suggestion-chip" data-query="Used diapers?" type="button">
+          <span>👶</span> Used diapers?
+        </button>
+      </div>
+      <form id="chatForm">
+        <div class="chat-input-wrap">
+          <input id="chatInput" type="text" placeholder="Ask about any item (e.g. kaanch, batteries, sabzi)..." autocomplete="off" />
+        </div>
+        <button id="chatSend" type="submit" aria-label="Send message">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+          </svg>
+        </button>
+      </form>
+    </div>
+    <!-- PROFILE TAB -->
+    <div class="tab-panel" id="tab-profile">
+      <!-- Header with avatar (initials), name, email, role & logout button -->
+      <div class="profile-hero">
+        <div class="profile-header-bar">
+          <div class="profile-user-left">
+            <div class="profile-avatar-lg" id="profileAvatar">?</div>
+            <div class="profile-user-info">
+              <div class="profile-fullname" id="profileName">Loading...</div>
+              <div class="profile-email" id="profileEmail"></div>
+              <span class="profile-role-badge">&#127961;&#65039; Citizen</span>
+            </div>
+          </div>
+          <button class="profile-logout-btn" id="logoutBtn" title="Sign Out of EcoRoute" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>
+            </svg>
+            <span>Sign Out</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Large animated circular SVG progress ring "Trust Score" (0-100) -->
+      <div class="trust-card">
+        <div class="trust-ring-wrap">
+          <svg class="trust-ring-svg" viewBox="0 0 140 140">
+            <circle class="trust-track-circle" id="trustRingTrack" cx="70" cy="70" r="56" stroke="rgba(22,163,74,0.18)"/>
+            <circle class="trust-fill-circle" id="trustRingFill" cx="70" cy="70" r="56" stroke="#16a34a" stroke-dasharray="351.86" stroke-dashoffset="351.86"/>
+          </svg>
+          <div class="trust-center-info">
+            <div class="trust-score-num" id="trustRingNum">50</div>
+            <div class="trust-score-sub">Trust Score</div>
+          </div>
+        </div>
+        <!-- Color-coded tier & Trusted Reporter badge -->
+        <div class="trust-badge-pill contributor" id="trustTierBadge">
+          <span id="trustTierIcon">&#127775;</span>
+          <span id="trustTierText">Community Contributor (40–79)</span>
+        </div>
+      </div>
+
+      <!-- Stats Row: Reports submitted, Upvotes received, Dumps cleaned -->
+      <div class="profile-stats-grid">
+        <div class="stat-card">
+          <div class="stat-card-icon">&#128203;</div>
+          <div class="stat-card-num" id="statReports">0</div>
+          <div class="stat-card-label">Reports</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-icon">&#128077;</div>
+          <div class="stat-card-num" id="statUpvotes">0</div>
+          <div class="stat-card-label">Upvotes</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-icon">&#129529;</div>
+          <div class="stat-card-num" id="statCleaned">0</div>
+          <div class="stat-card-label">Cleaned</div>
+        </div>
+      </div>
+
+      <!-- Explanation Card -->
+      <div class="explanation-card">
+        <div class="expl-header">
+          <div class="expl-icon">&#128737;&#65039;</div>
+          <div class="expl-title">How Trust Score Works</div>
+        </div>
+        <div class="expl-text">
+          Your score rises when neighbors upvote your reports (+5) and when they get cleaned (+10). At 80+, your reports skip community verification and go straight to drivers.
+        </div>
+        <div class="expl-points-row">
+          <div class="expl-pill">
+            <div class="expl-pill-pts">+5 pts</div>
+            <div class="expl-pill-desc">Neighbor Upvote</div>
+          </div>
+          <div class="expl-pill">
+            <div class="expl-pill-pts">+10 pts</div>
+            <div class="expl-pill-desc">Dump Cleaned</div>
+          </div>
+          <div class="expl-pill">
+            <div class="expl-pill-pts">80+ pts</div>
+            <div class="expl-pill-desc">Auto-Verified</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- List "My Reports" with status badges -->
+      <div class="my-reports-section">
+        <div class="my-reports-header">
+          <span class="my-reports-title">My Reports</span>
+          <span class="my-reports-count" id="myReportsCount">0</span>
+        </div>
+        <div class="my-reports-list" id="myReportsList">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+    </div>
+  </div>
+  <nav id="bottomNav">
+    <button class="nav-btn active" data-tab="home" id="nav-home">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span>Home</span>
+    </button>
+    <button class="nav-btn nav-report" data-tab="report" id="nav-report">
+      <div class="nav-report-bg">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      </div>
+      <span>Report</span>
+    </button>
+    <button class="nav-btn" data-tab="chat" id="nav-chat">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <span>Chat</span>
+    </button>
+    <button class="nav-btn" data-tab="profile" id="nav-profile">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span>Profile</span>
+    </button>
+  </nav>
+  <div id="toast"></div>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script type="module">
+import { requireRole, logout } from '../shared/auth.js';
+import { supabase } from '../shared/supabaseClient.js';
+import { findWasteCategory, BINS } from '../shared/wasteKnowledge.js';
+
+const params = new URLSearchParams(window.location.search);
+let profile = null;
+
+if (params.get('demo') === '1' || params.get('demo') === 'true') {
+  const trustVal = params.get('trust') ? parseInt(params.get('trust'), 10) : 50;
+  profile = {
+    id: trustVal >= 80 ? 'cccccccc-0000-0000-0000-000000000080' : 'cccccccc-0000-0000-0000-000000000050',
+    full_name: trustVal >= 80 ? 'Citizen High Trust (85)' : 'Citizen A (Trust 50)',
+    role: 'citizen',
+    trust_score: trustVal,
+    created_at: new Date().toISOString()
+  };
+  localStorage.setItem('ecoroute_demo_session', JSON.stringify({
+    session: { user: { id: profile.id, email: 'citizen@cleangreen.in' } },
+    profile
+  }));
+} else {
+  profile = await requireRole('citizen');
+}
+if (!profile) throw new Error('Not authorised as citizen');
+const ME = profile;
+
+document.getElementById('guardLoader').classList.add('hidden');
+document.getElementById('trustBadge').textContent = String.fromCodePoint(0x2B50) + ' ' + ME.trust_score + ' pts';
+document.getElementById('avatarBtn').textContent   = (ME.full_name || 'U')[0].toUpperCase();
+
+/* TAB ROUTING */
+const panels  = document.querySelectorAll('.tab-panel');
+const navBtns = document.querySelectorAll('.nav-btn');
+
+function switchTab(id) {
+  panels.forEach(p => p.classList.toggle('active', p.id === 'tab-' + id));
+  navBtns.forEach(b => b.classList.toggle('active', b.dataset.tab === id));
+  if (id === 'home' && mapInstance) setTimeout(() => mapInstance.invalidateSize(), 80);
+  if (id === 'chat') setTimeout(() => scrollChatBottom(false), 60);
+  if (id === 'profile') loadProfile();
+}
+navBtns.forEach(btn => btn.addEventListener('click', () => switchTab(btn.dataset.tab)));
+
+/* TOAST */
+const toastEl = document.getElementById('toast');
+let toastTimer;
+function showToast(msg) {
+  clearTimeout(toastTimer);
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  toastTimer = setTimeout(() => toastEl.classList.remove('show'), 3000);
+}
+
+/* MAP */
+let mapInstance, userMarker, truckMarker, userLatLng;
+
+function initMap(lat, lng) {
+  mapInstance = L.map('map', { zoomControl: false, attributionControl: false }).setView([lat, lng], 15);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(mapInstance);
+  const userIcon = L.divIcon({ className: '', html: '<div class="user-dot"></div>', iconSize: [14,14], iconAnchor: [7,7] });
+  userMarker = L.marker([lat, lng], { icon: userIcon, zIndexOffset: 1000 }).addTo(mapInstance);
+  userLatLng = [lat, lng];
+  document.getElementById('locateBtn').addEventListener('click', () => {
+    if (userLatLng) mapInstance.flyTo(userLatLng, 15, { duration: 0.8 });
+  });
+}
+
+function updateTruckMarker(lat, lng) {
+  const icon = L.divIcon({ className: 'truck-marker', html: '<div class="truck-marker-inner">&#x1F69B;</div>', iconSize: [32,32], iconAnchor: [16,16] });
+  if (!truckMarker) {
+    truckMarker = L.marker([lat, lng], { icon }).addTo(mapInstance);
+    truckMarker.bindPopup('<strong>&#x1F69B; Garbage Truck</strong><br>Municipal collection vehicle');
+  } else {
+    truckMarker.setLatLng([lat, lng]);
+  }
+  document.getElementById('truckPill').classList.add('visible');
+}
+
+let gpsStarted = false;
+function startGPS() {
+  if (gpsStarted) return; gpsStarted = true;
+  if (!navigator.geolocation) { initMap(28.6139, 77.209); loadFeed(); subscribeRealtime(); return; }
+  navigator.geolocation.watchPosition(
+    pos => {
+      const { latitude: lat, longitude: lng } = pos.coords;
+      if (!mapInstance) { initMap(lat, lng); loadFeed(); subscribeRealtime(); }
+      else if (userMarker) userMarker.setLatLng([lat, lng]);
+      userLatLng = [lat, lng];
+      document.getElementById('repLat').value = lat.toFixed(6);
+      document.getElementById('repLng').value = lng.toFixed(6);
+    },
+    () => { if (!mapInstance) { initMap(28.6139, 77.209); loadFeed(); subscribeRealtime(); } },
+    { enableHighAccuracy: true, maximumAge: 5000 }
+  );
+}
+startGPS();
+
+async function loadTruckLocations() {
+  const { data } = await supabase.from('truck_locations').select('lat, lng');
+  if (data && data.length && mapInstance) updateTruckMarker(data[0].lat, data[0].lng);
+}
+
+/* COMMUNITY FEED */
+let reports = [], myVotes = new Set();
+
+async function loadMyVotes() {
+  const { data } = await supabase.from('report_verifications').select('report_id').eq('user_id', ME.id);
+  if (data) data.forEach(v => myVotes.add(v.report_id));
+}
+
+async function loadFeed() {
+  // Show loading skeleton
+  const list = document.getElementById('feedList');
+  list.innerHTML = [1,2,3].map(() => `
+    <div style="padding:12px 14px;display:grid;grid-template-columns:68px 1fr;gap:10px;border-bottom:1px solid #f1f5f9;">
+      <div style="width:68px;height:68px;border-radius:10px;background:linear-gradient(90deg,#f1f5f9 25%,#e2e8f0 50%,#f1f5f9 75%);background-size:200% 100%;animation:shimmer 1.2s infinite;"></div>
+      <div style="display:flex;flex-direction:column;gap:8px;padding-top:4px;">
+        <div style="height:12px;border-radius:6px;background:linear-gradient(90deg,#f1f5f9 25%,#e2e8f0 50%,#f1f5f9 75%);background-size:200% 100%;animation:shimmer 1.2s infinite;width:80%;"></div>
+        <div style="height:10px;border-radius:6px;background:linear-gradient(90deg,#f1f5f9 25%,#e2e8f0 50%,#f1f5f9 75%);background-size:200% 100%;animation:shimmer 1.2s infinite;width:55%;"></div>
+        <div style="height:10px;border-radius:6px;background:linear-gradient(90deg,#f1f5f9 25%,#e2e8f0 50%,#f1f5f9 75%);background-size:200% 100%;animation:shimmer 1.2s infinite;width:35%;"></div>
+      </div>
+    </div>`).join('');
+
+  if (!document.querySelector('#feedShimmerStyle')) {
+    const s = document.createElement('style'); s.id = 'feedShimmerStyle';
+    s.textContent = '@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}';
+    document.head.appendChild(s);
+  }
+
+  await loadMyVotes();
+  try {
+    const { data, error } = await supabase.from('reports')
+      .select('id,reporter_id,photo_url,lat,lng,description,status,verification_count,created_at')
+      .order('created_at', { ascending: false }).limit(50);
+    // Use demo data if: error, or data is null/empty
+    if (!error && data && data.length > 0) {
+      reports = data;
+    } else {
+      reports = getDemoReports();
+      if (error) console.info('[feed] Supabase error, using demo data:', error.message);
+    }
+  } catch (err) {
+    reports = getDemoReports();
+    console.info('[feed] Network error, using demo data:', err.message);
+  }
+
+  try {
+    const stored = JSON.parse(localStorage.getItem('ecoroute_demo_reports') || '[]');
+    if (stored.length > 0) {
+      const existingIds = new Set(reports.map(r => r.id));
+      const unmerged = stored.filter(r => !existingIds.has(r.id));
+      reports = [...unmerged, ...reports];
+    }
+  } catch (e) {}
+
+  await loadTruckLocations();
+  renderFeed();
+}
+
+function getDemoReports() {
+  return [
+    {
+      id: 'rep-demo-1',
+      reporter_id: ME.id,
+      photo_url: 'https://images.unsplash.com/photo-1605600659908-0ef719419d41?w=400',
+      lat: 28.6139,
+      lng: 77.2090,
+      description: 'Overflowing municipal bin near Block C park',
+      status: 'verified',
+      verification_count: 4,
+      created_at: new Date(Date.now() - 3600000 * 4).toISOString()
+    },
+    {
+      id: 'rep-demo-2',
+      reporter_id: 'dddddddd-0000-0000-0000-000000000004',
+      photo_url: 'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=400',
+      lat: 28.6152,
+      lng: 77.2115,
+      description: 'Plastic waste pile near main market road',
+      status: 'cleaned',
+      verification_count: 6,
+      created_at: new Date(Date.now() - 86400000 * 2).toISOString()
+    },
+    {
+      id: 'rep-demo-3',
+      reporter_id: 'eeeeeeee-0000-0000-0000-000000000005',
+      photo_url: null,
+      lat: 28.6120,
+      lng: 77.2080,
+      description: 'Construction debris dumped overnight on 2nd cross road',
+      status: 'pending_verification',
+      verification_count: 1,
+      created_at: new Date(Date.now() - 1800000).toISOString()
+    }
+  ];
+}
+
+function timeAgo(iso) {
+  const m = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+  if (m < 1) return 'just now'; if (m < 60) return m + 'm ago';
+  const h = Math.floor(m / 60); if (h < 24) return h + 'h ago';
+  return Math.floor(h/24) + 'd ago';
+}
+function coordsLabel(lat, lng) { return parseFloat(lat).toFixed(4) + 'N, ' + parseFloat(lng).toFixed(4) + 'E'; }
+function statusCls(s) { return { pending_verification:'status-pending', verified:'status-verified', cleaned:'status-cleaned' }[s] || 'status-pending'; }
+function statusLbl(s) { return { pending_verification:'Pending', verified:'Verified', cleaned:'Cleaned' }[s] || s; }
+
+function renderFeed() {
+  const list = document.getElementById('feedList');
+  document.getElementById('feedCount').textContent = reports.length;
+  if (!reports.length) {
+    list.innerHTML = `
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 16px;gap:12px;">
+        <div style="font-size:2.5rem;">🌱</div>
+        <div style="font-size:.875rem;font-weight:700;color:#0f172a;">No reports in your area yet</div>
+        <div style="font-size:.75rem;color:#64748b;text-align:center;">Be the first to report a dump site and help keep your community clean!</div>
+        <button onclick="switchTab('report')" style="margin-top:6px;padding:8px 20px;border-radius:999px;border:none;background:#16a34a;color:#fff;font-size:.78rem;font-weight:700;cursor:pointer;">+ Report a Dump</button>
+      </div>`;
+    return;
+  }
+  list.innerHTML = reports.map(r => {
+    const voted  = myVotes.has(r.id);
+    const isOwn  = r.reporter_id === ME.id;
+    const upCls  = voted ? 'voted' : isOwn ? 'own-report' : '';
+    const photoEl = r.photo_url
+      ? '<div class="report-photo"><img src="' + r.photo_url + '" alt="Report" loading="lazy" /></div>'
+      : '<div class="report-photo">&#128465;&#65039;</div>';
+    return '<div class="report-card" data-id="' + r.id + '" data-lat="' + r.lat + '" data-lng="' + r.lng + '">'
+      + photoEl
+      + '<div class="report-body">'
+      + '<div class="report-row1"><span class="report-status ' + statusCls(r.status) + '">' + statusLbl(r.status) + '</span>'
+      + '<span class="report-addr">' + (r.description ? r.description.slice(0,50) : coordsLabel(r.lat,r.lng)) + '</span></div>'
+      + '<div class="report-meta">' + coordsLabel(r.lat,r.lng) + ' &middot; ' + timeAgo(r.created_at) + '</div>'
+      + '<div class="report-actions"><button class="upvote-btn ' + upCls + '" data-id="' + r.id + '" data-own="' + isOwn + '">'
+      + '<svg viewBox="0 0 24 24" fill="' + (voted?'currentColor':'none') + '" stroke="currentColor" stroke-width="2">'
+      + '<path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>'
+      + '<path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>'
+      + '<span class="uv-count">' + r.verification_count + '</span></button></div>'
+      + '</div></div>';
+  }).join('');
+
+  list.querySelectorAll('.report-card').forEach(card => {
+    card.addEventListener('click', e => {
+      if (e.target.closest('.upvote-btn')) return;
+      const lat = parseFloat(card.dataset.lat), lng = parseFloat(card.dataset.lng);
+      if (mapInstance) { switchTab('home'); setTimeout(() => mapInstance.flyTo([lat,lng], 16, { duration:0.7 }), 120); }
+    });
+  });
+  list.querySelectorAll('.upvote-btn').forEach(btn => {
+    btn.addEventListener('click', e => { e.stopPropagation(); handleUpvote(btn); });
+  });
+}
+
+async function handleUpvote(btn) {
+  const reportId = btn.dataset.id;
+  if (btn.dataset.own === 'true') { showToast('Cannot upvote your own report'); return; }
+  if (myVotes.has(reportId)) { showToast('Already upvoted!'); return; }
+  btn.classList.add('voted');
+  const countEl = btn.querySelector('.uv-count');
+  const prev = parseInt(countEl.textContent, 10);
+  const nextCount = prev + 1;
+  countEl.textContent = nextCount;
+  myVotes.add(reportId);
+  btn.querySelector('svg').setAttribute('fill', 'currentColor');
+
+  let success = false;
+  try {
+    const { error } = await supabase.from('report_verifications').insert({ report_id: reportId, user_id: ME.id });
+    if (!error) success = true;
+  } catch (err) {}
+
+  const isDemo = params.get('demo') || localStorage.getItem('ecoroute_demo_session');
+  if (isDemo || !success) {
+    success = true;
+  }
+
+  if (success) {
+    showToast('Upvote recorded!');
+    const r = reports.find(x => x.id === reportId);
+    if (r) {
+      r.verification_count = nextCount;
+      if (r.verification_count >= 3 && r.status === 'pending_verification') {
+        r.status = 'verified';
+        showToast('🎉 Report verified! Passed to drivers.');
+        try {
+          const syncChannel = new BroadcastChannel('ecoroute-sync');
+          syncChannel.postMessage({
+            type: 'CHRONIC_UPDATE',
+            hotspot: {
+              id: r.id,
+              name: r.description || 'Verified Community Dump',
+              lat: r.lat,
+              lng: r.lng,
+              is_chronic: true,
+              report_count: r.verification_count
+            }
+          });
+        } catch(e) {}
+      }
+    }
+
+    try {
+      const stored = JSON.parse(localStorage.getItem('ecoroute_demo_reports') || '[]');
+      const target = stored.find(x => x.id === reportId);
+      if (target) {
+        target.verification_count = nextCount;
+        if (nextCount >= 3 && target.status === 'pending_verification') {
+          target.status = 'verified';
+          // Award +5 trust points to original reporter
+          const rawDemo = localStorage.getItem('ecoroute_demo_session');
+          if (rawDemo) {
+            const parsed = JSON.parse(rawDemo);
+            if (parsed && parsed.profile && parsed.profile.id === target.reporter_id) {
+              parsed.profile.trust_score = Math.min(100, (parsed.profile.trust_score || 50) + 5);
+              localStorage.setItem('ecoroute_demo_session', JSON.stringify(parsed));
+              const bc = new BroadcastChannel('ecoroute-sync');
+              bc.postMessage({ type: 'CITIZEN_TRUST_AWARDED', new_score: parsed.profile.trust_score, diff: 5 });
+            }
+          }
+        }
+        localStorage.setItem('ecoroute_demo_reports', JSON.stringify(stored));
+      }
+    } catch(e) {}
+  }
+}
+
+/* REALTIME */
+function subscribeRealtime() {
+  supabase.channel('citizen-reports')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'reports' }, payload => {
+      reports.unshift(payload.new); renderFeed(); showToast('New report in your area!');
+    })
+    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'reports' }, payload => {
+      const idx = reports.findIndex(r => r.id === payload.new.id);
+      if (idx !== -1) { reports[idx] = Object.assign({}, reports[idx], payload.new); renderFeed(); }
+    })
+    .subscribe();
+
+  supabase.channel('citizen-trucks')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'truck_locations' }, payload => {
+      if (payload.new && mapInstance) updateTruckMarker(payload.new.lat, payload.new.lng);
+    })
+    .subscribe();
+}
+
+/* ═══════════════════════════════════════════
+   REPORT TAB — camera, compress, geo, submit
+═══════════════════════════════════════════ */
+
+const photoFileEl    = document.getElementById('photoFile');
+const photoPreviewEl = document.getElementById('photoPreview');
+const cameraBtnEl    = document.getElementById('cameraBtn');
+const retakeBtnEl    = document.getElementById('retakeBtn');
+const compressChipEl = document.getElementById('compressChip');
+const locChipEl      = document.getElementById('locChip');
+const locValueEl     = document.getElementById('locChipValue');
+const locSpinnerEl   = document.getElementById('locSpinner');
+const retryLocBtnEl  = document.getElementById('retryLocBtn');
+const fallbackWrap   = document.getElementById('fallbackMapWrap');
+const submitRepBtn   = document.getElementById('submitReportBtn');
+
+let repLat = null, repLng = null;
+let compressedBlob = null;
+let fallbackMap = null, fallbackPin = null;
+
+/* ── Image compression (canvas, max 1200px) ── */
+function compressImage(file, maxPx = 1200, quality = 0.82) {
+  return new Promise(resolve => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let { width: w, height: h } = img;
+      if (w > maxPx || h > maxPx) {
+        const scale = maxPx / Math.max(w, h);
+        w = Math.round(w * scale); h = Math.round(h * scale);
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      canvas.toBlob(blob => resolve(blob), 'image/jpeg', quality);
+    };
+    img.src = url;
+  });
+}
+
+/* ── Photo selection ── */
+photoFileEl.addEventListener('change', async e => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  // Show raw preview immediately
+  photoPreviewEl.src = URL.createObjectURL(file);
+  photoPreviewEl.style.display = 'block';
+  cameraBtnEl.style.display = 'none';
+  retakeBtnEl.classList.add('show');
+
+  // Compress in background
+  compressedBlob = await compressImage(file);
+  const savedKB = Math.round((file.size - compressedBlob.size) / 1024);
+  if (savedKB > 10) {
+    compressChipEl.textContent = '';
+    compressChipEl.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11"><path d="M12 2l3 7h7l-6 4 2 7-6-4-6 4 2-7-6-4h7z"/></svg> ' + Math.round(compressedBlob.size/1024) + 'KB';
+    compressChipEl.classList.add('show');
+  }
+});
+
+/* ── Retake ── */
+retakeBtnEl.addEventListener('click', () => {
+  photoPreviewEl.style.display = 'none';
+  cameraBtnEl.style.display = '';
+  retakeBtnEl.classList.remove('show');
+  compressChipEl.classList.remove('show');
+  photoFileEl.value = '';
+  compressedBlob = null;
+});
+
+/* ── Geolocation ── */
+function setLocDetected(lat, lng) {
+  repLat = lat; repLng = lng;
+  document.getElementById('repLat').value = lat;
+  document.getElementById('repLng').value = lng;
+  locValueEl.textContent = lat.toFixed(5) + '°N, ' + lng.toFixed(5) + '°E';
+  locValueEl.classList.remove('muted');
+  locChipEl.classList.add('detected'); locChipEl.classList.remove('error');
+  locSpinnerEl.style.display = 'none';
+  retryLocBtnEl.style.display = 'none';
+  updateSubmitState();
+}
+window.setLocDetected = setLocDetected;
+
+function setLocError() {
+  locValueEl.textContent = 'Permission denied — tap map to pin';
+  locValueEl.classList.add('muted');
+  locChipEl.classList.add('error'); locChipEl.classList.remove('detected');
+  locSpinnerEl.style.display = 'none';
+  retryLocBtnEl.style.display = '';
+  // Show fallback map
+  fallbackWrap.classList.add('show');
+  if (!fallbackMap) {
+    fallbackMap = L.map('fallbackMap', { zoomControl: true, attributionControl: false }).setView([28.6139, 77.209], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(fallbackMap);
+    fallbackMap.on('click', e => {
+      const { lat, lng } = e.latlng;
+      if (fallbackPin) fallbackPin.setLatLng([lat, lng]);
+      else fallbackPin = L.marker([lat, lng]).addTo(fallbackMap);
+      setLocDetected(lat, lng);
+    });
+    setTimeout(() => fallbackMap.invalidateSize(), 100);
+  }
+}
+
+function detectLocation() {
+  locSpinnerEl.style.display = '';
+  retryLocBtnEl.style.display = 'none';
+  locValueEl.textContent = 'Detecting…';
+  locValueEl.classList.add('muted');
+  locChipEl.classList.remove('detected', 'error');
+  if (!navigator.geolocation) { setLocError(); return; }
+  navigator.geolocation.getCurrentPosition(
+    pos => setLocDetected(pos.coords.latitude, pos.coords.longitude),
+    ()  => setLocError(),
+    { enableHighAccuracy: true, timeout: 10000 }
+  );
+}
+detectLocation();
+retryLocBtnEl.addEventListener('click', detectLocation);
+
+/* Update submit button state */
+function updateSubmitState() {
+  submitRepBtn.disabled = (repLat === null);
+}
+
+/* ── Submit ── */
+submitRepBtn.addEventListener('click', async () => {
+  if (repLat === null) { showToast('Please allow location access or tap the map'); return; }
+  const desc = document.getElementById('repDesc').value.trim();
+
+  submitRepBtn.classList.add('loading');
+  submitRepBtn.innerHTML = '<svg class="spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg><span>Uploading…</span>';
+
+  let photo_url = null;
+  const uploadBlob = compressedBlob || (photoFileEl.files[0] || null);
+  if (uploadBlob) {
+    const path = ME.id + '/' + Date.now() + '.jpg';
+    const { error: upErr } = await supabase.storage
+      .from('report-photos')
+      .upload(path, uploadBlob, { contentType: 'image/jpeg', upsert: false });
+    if (!upErr) {
+      const { data: urlData } = supabase.storage.from('report-photos').getPublicUrl(path);
+      photo_url = urlData ? urlData.publicUrl : null;
+    }
+  }
+
+  let inserted = null;
+  const isAutoVerified = (ME.trust_score >= 80);
+  const isDemo = params.get('demo') || localStorage.getItem('ecoroute_demo_session');
+
+  if (!isDemo) {
+    try {
+      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 1500));
+      const insertPromise = supabase
+        .from('reports')
+        .insert({ reporter_id: ME.id, lat: repLat, lng: repLng, description: desc || null, photo_url })
+        .select('id, status')
+        .single();
+      const res = await Promise.race([insertPromise, timeoutPromise]);
+      if (!res.error && res.data) {
+        inserted = res.data;
+      }
+    } catch (err) {}
+  }
+
+  if (!inserted) {
+    inserted = {
+      id: 'demo-rep-' + Date.now(),
+      reporter_id: ME.id,
+      lat: repLat,
+      lng: repLng,
+      description: desc || 'Dump site reported near my location',
+      photo_url: photo_url || (compressedBlob ? URL.createObjectURL(compressedBlob) : null),
+      status: isAutoVerified ? 'verified' : 'pending_verification',
+      verification_count: isAutoVerified ? 3 : 0,
+      created_at: new Date().toISOString()
+    };
+    try {
+      const demoReports = JSON.parse(localStorage.getItem('ecoroute_demo_reports') || '[]');
+      demoReports.unshift(inserted);
+      localStorage.setItem('ecoroute_demo_reports', JSON.stringify(demoReports));
+    } catch(e) {}
+  }
+
+  // Prepend to local feed
+  reports.unshift(inserted);
+  renderFeed();
+
+  // Broadcast to Admin and Driver
+  try {
+    const syncChannel = new BroadcastChannel('ecoroute-sync');
+    syncChannel.postMessage({
+      type: 'NEW_REPORT',
+      report: {
+        id: inserted.id,
+        reporter_id: ME.id,
+        lat: repLat,
+        lng: repLng,
+        description: desc || 'Dump site reported by citizen',
+        status: inserted.status || (isAutoVerified ? 'verified' : 'pending_verification'),
+        verification_count: inserted.status === 'verified' ? 3 : 0,
+        photo_url: photo_url,
+        created_at: new Date().toISOString()
+      }
+    });
+
+    if (inserted.status === 'verified' || isAutoVerified) {
+      syncChannel.postMessage({
+        type: 'CHRONIC_UPDATE',
+        hotspot: {
+          id: inserted.id,
+          name: desc || 'Verified Dump Report',
+          lat: repLat,
+          lng: repLng,
+          is_chronic: true,
+          report_count: 3
+        }
+      });
+    }
+  } catch(e) {}
+
+  submitRepBtn.classList.remove('loading');
+  submitRepBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg><span>Submit Report</span>';
+
+  /* Determine trust-aware message */
+  const trusted = inserted && inserted.status === 'verified';
+  document.getElementById('successMsg').textContent = trusted
+    ? 'Your high trust score auto-verified this report. Drivers can see it now!'
+    : 'Your report is live in the community feed. Others can upvote it!';
+  const badge = document.getElementById('successBadge');
+  const badgeText = document.getElementById('successBadgeText');
+  badge.className = 'success-badge ' + (trusted ? 'trusted' : 'community');
+  badge.querySelector('svg').innerHTML = trusted
+    ? '<polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>'
+    : '<circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>';
+  badgeText.textContent = trusted
+    ? '\u2728 Trusted reporter \u2014 sent directly to drivers!'
+    : '\u23f3 Sent to community verification';
+
+  /* Show success screen */
+  document.getElementById('reportFormCard').style.display = 'none';
+  const cameraZone = document.getElementById('cameraZone');
+  cameraZone.style.display = 'none';
+  const successEl = document.getElementById('reportSuccess');
+  successEl.classList.add('show');
+
+  /* Animate particles */
+  spawnParticles();
+
+  /* Smart toast */
+  showToast(trusted ? '\u2728 Trusted reporter: sent directly to drivers!' : '\u1f4e2 Sent to community verification');
+});
+
+function spawnParticles() {
+  const container = document.getElementById('successParticles');
+  container.innerHTML = '';
+  const colors = ['#22c55e','#86efac','#fbbf24','#34d399','#60a5fa'];
+  for (let i = 0; i < 12; i++) {
+    const dot = document.createElement('div');
+    dot.className = 's-dot';
+    const angle = (i / 12) * 360;
+    const dist  = 45 + Math.random() * 20;
+    dot.style.cssText = [
+      'background:' + colors[i % colors.length],
+      'animation: particle' + i + ' .7s var(--ease-out) ' + (i * 0.04) + 's both',
+    ].join(';');
+    // inject keyframe dynamically
+    const dx = Math.round(Math.cos(angle * Math.PI / 180) * dist);
+    const dy = Math.round(Math.sin(angle * Math.PI / 180) * dist);
+    const style = document.createElement('style');
+    style.textContent = '@keyframes particle' + i + '{0%{transform:translate(-50%,-50%) scale(1);opacity:1}100%{transform:translate(calc(-50% + ' + dx + 'px),calc(-50% + ' + dy + 'px)) scale(0);opacity:0}}';
+    document.head.appendChild(style);
+    container.appendChild(dot);
+  }
+}
+
+/* ── Reset / Again ── */
+function resetReportTab() {
+  photoPreviewEl.style.display = 'none';
+  cameraBtnEl.style.display = '';
+  retakeBtnEl.classList.remove('show');
+  compressChipEl.classList.remove('show');
+  photoFileEl.value = '';
+  compressedBlob = null;
+  document.getElementById('repDesc').value = '';
+  document.getElementById('repLat').value  = '';
+  document.getElementById('repLng').value  = '';
+  repLat = null; repLng = null;
+  document.getElementById('reportFormCard').style.display = '';
+  document.getElementById('cameraZone').style.display = '';
+  document.getElementById('reportSuccess').classList.remove('show');
+  fallbackWrap.classList.remove('show');
+  submitRepBtn.disabled = true;
+  detectLocation();
+}
+
+document.getElementById('reportAgainBtn').addEventListener('click', resetReportTab);
+document.getElementById('goHomeBtn').addEventListener('click', () => { resetReportTab(); switchTab('home'); });
+
+/* ═══════════════════════════════════════════
+   CHAT TAB — WhatsApp-style Segregation Assistant
+   Two-layer architecture:
+   Layer 1: Local SWM 2016 knowledge base (/shared/wasteKnowledge.js)
+   Layer 2: Optional AI mode (Supabase Edge Function 'waste-chat')
+   Persistent localStorage chat history
+═══════════════════════════════════════════ */
+
+const chatMessagesEl    = document.getElementById('chatMessages');
+const typingEl          = document.getElementById('typingIndicator');
+const chatFormEl        = document.getElementById('chatForm');
+const chatInputEl       = document.getElementById('chatInput');
+const aiModeToggleEl    = document.getElementById('aiModeToggle');
+const aiModeIconEl      = document.getElementById('aiModeIcon');
+const aiModeTextEl      = document.getElementById('aiModeText');
+const clearChatBtnEl    = document.getElementById('clearChatBtn');
+const suggestionChipsEl = document.getElementById('suggestionChips');
+
+const CHAT_STORAGE_KEY = 'ecoroute_citizen_chat_history_v2';
+const AI_STORAGE_KEY   = 'ecoroute_citizen_ai_mode';
+
+let aiModeActive = localStorage.getItem(AI_STORAGE_KEY) === 'true';
+
+function updateAiToggleUI() {
+  if (!aiModeToggleEl) return;
+  aiModeToggleEl.classList.toggle('active', aiModeActive);
+  aiModeIconEl.textContent = aiModeActive ? '✨' : '⚡';
+  aiModeTextEl.textContent = aiModeActive ? 'AI' : 'Local';
+  aiModeToggleEl.title     = aiModeActive
+    ? 'AI Mode active (Edge Function). Click to switch to Offline Local KB.'
+    : 'Local Mode active (Instant SWM 2016 KB). Click to switch to AI Mode.';
+}
+updateAiToggleUI();
+
+if (aiModeToggleEl) {
+  aiModeToggleEl.addEventListener('click', () => {
+    aiModeActive = !aiModeActive;
+    localStorage.setItem(AI_STORAGE_KEY, aiModeActive ? 'true' : 'false');
+    updateAiToggleUI();
+    showToast(aiModeActive ? '✨ Switched to AI Mode (Edge Function)' : '⚡ Switched to Local SWM Knowledge Base');
+  });
+}
+
+// App & system FAQ fallback rules
+const APP_FAQS = [
+  [/report|dump|photo|kooda/i, 'To report garbage or a dump site, tap the (+) Report button in the bottom bar, snap a photo, confirm your location, and submit!'],
+  [/trust|point|score/i, 'Your Trust Score grows with verified reports (+5) and hotspot cleanups (+10). With a score of 80+, your reports are auto-verified directly to drivers!'],
+  [/upvote|verify/i, 'Verify any community report on the Home feed by tapping thumbs-up. 3 upvotes confirm the hotspot for municipal cleanup!'],
+  [/truck|driver|collect/i, 'The live truck marker on the Home map tracks your municipal collection vehicle in real time via GPS!'],
+  [/clean|cleaned|hotspot/i, 'Hotspots with 5+ community reports become Chronic hotspots and are given top priority on drivers\' daily route.'],
+  [/hi|hello|namaste|hey|help/i, 'Namaste! 🙏 Ask me how to segregate any waste item (e.g. "kaanch", "broken glass", "used batteries", "chai patti", "medicine") or tap any quick suggestion chip!']
+];
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function formatTime(ts) {
+  const d = ts ? new Date(ts) : new Date();
+  return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
+}
+
+function binIcon(color) {
+  const map = { green: '🍏', blue: '📦', red: '⚠️', black: '🩹' };
+  return map[color] || '🗑️';
+}
+
+function scrollChatBottom(smooth = true) {
+  if (!chatMessagesEl) return;
+  chatMessagesEl.scrollTo({
+    top: chatMessagesEl.scrollHeight,
+    behavior: smooth ? 'smooth' : 'auto'
+  });
+}
+
+function loadChatHistory() {
+  try {
+    const raw = localStorage.getItem(CHAT_STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {
+    console.error('Failed to parse chat history', e);
+  }
+  return [
+    {
+      id: 'welcome-0',
+      sender: 'bot',
+      text: 'Namaste! 🙏 I am EcoBot, your Smart Waste Segregation Assistant adhering to India\'s Solid Waste Management (SWM) Rules 2016.\n\nAsk me how to dispose of any household item (e.g., "Broken glass", "Old batteries", "Food waste", "Used diapers", "Chai patti", "Kaanch") or tap one of the suggestion chips below!',
+      timestamp: Date.now()
+    }
+  ];
+}
+
+let chatHistory = loadChatHistory();
+
+function saveChatHistory() {
+  try {
+    localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(chatHistory.slice(-50)));
+  } catch (e) {
+    console.warn('Storage quota exceeded for chat history', e);
+  }
+}
+
+function renderMessageElement(msg) {
+  const isBot = msg.sender === 'bot';
+  const msgEl = document.createElement('div');
+  msgEl.className = 'chat-msg ' + (isBot ? 'bot' : 'user');
+
+  if (isBot) {
+    let contentHtml = '';
+    if (msg.item_detected) {
+      contentHtml += '<div class="item-detected-tag">Detected: <strong>' + escapeHtml(msg.item_detected) + '</strong></div>';
+    }
+
+    if (msg.bin_color) {
+      const bColor = msg.bin_color.toLowerCase();
+      const bName  = msg.bin_name || (bColor.toUpperCase() + ' BIN');
+      contentHtml += '<div class="segregation-card">';
+      contentHtml += '  <div class="bin-chip bin-' + bColor + '">';
+      contentHtml += '    <span class="bin-chip-icon">' + binIcon(bColor) + '</span>';
+      contentHtml += '    <span class="bin-chip-title">' + escapeHtml(bName) + '</span>';
+      contentHtml += '  </div>';
+
+      if (msg.guidelines && msg.guidelines.length) {
+        contentHtml += '  <div class="guidelines-box">';
+        msg.guidelines.forEach(g => {
+          contentHtml += '    <div class="guideline-item">';
+          contentHtml += '      <span class="guideline-bullet">✓</span>';
+          contentHtml += '      <span>' + escapeHtml(g) + '</span>';
+          contentHtml += '    </div>';
+        });
+        contentHtml += '  </div>';
+      }
+
+      if (msg.explanation) {
+        contentHtml += '  <div class="explanation-text">' + escapeHtml(msg.explanation) + '</div>';
+      }
+
+      contentHtml += '  <div class="source-tag">' + (msg.isAi ? '✨ AI Segregation' : '⚡ Local SWM 2016 Rules') + '</div>';
+      contentHtml += '</div>';
+    } else {
+      contentHtml += '<div class="chat-text">' + escapeHtml(msg.text) + '</div>';
+    }
+
+    contentHtml += '<div class="chat-time">' + formatTime(msg.timestamp) + '</div>';
+    msgEl.innerHTML = contentHtml;
+  } else {
+    // User message
+    msgEl.innerHTML =
+      '<div class="chat-text">' + escapeHtml(msg.text) + '</div>' +
+      '<div class="chat-time">' + formatTime(msg.timestamp) +
+      ' <svg viewBox="0 0 16 16" fill="currentColor">' +
+      '<path d="M12.354 4.354a.5.5 0 0 0-.708-.708L5 10.293 1.854 7.146a.5.5 0 1 0-.708.708l3.5 3.5a.5.5 0 0 0 .708 0l7-7zm-4.5 4.5l3.5-3.5a.5.5 0 1 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-1-1a.5.5 0 1 1 .708-.708l.5.5z"/>' +
+      '</svg></div>';
+  }
+
+  return msgEl;
+}
+
+function renderAllMessages() {
+  if (!chatMessagesEl) return;
+  chatMessagesEl.innerHTML = '<div class="chat-date-badge">Today</div>';
+  chatHistory.forEach(msg => {
+    chatMessagesEl.appendChild(renderMessageElement(msg));
+  });
+  scrollChatBottom(false);
+}
+renderAllMessages();
+
+// Two-layer disposal query processor
+async function processDisposalQuery(userQuery) {
+  const clean = userQuery.trim();
+
+  // If AI mode is enabled, attempt calling the Supabase Edge Function 'waste-chat'
+  if (aiModeActive) {
+    try {
+      const { data, error } = await supabase.functions.invoke('waste-chat', {
+        body: { query: clean }
+      });
+      if (!error && data && data.bin_color && data.guidelines) {
+        return {
+          bin_color: data.bin_color.toLowerCase(),
+          bin_name: data.bin_name || (data.bin_color.toUpperCase() + ' BIN'),
+          guidelines: data.guidelines,
+          explanation: data.explanation || '',
+          item_detected: data.item_detected || clean,
+          isAi: true
+        };
+      }
+    } catch (edgeErr) {
+      console.warn('[EcoRoute Chat] AI Edge Function call failed, falling back to local KB', edgeErr);
+    }
+  }
+
+  // Layer 1: Local Knowledge Base match
+  const kbResult = findWasteCategory(clean);
+  if (kbResult && kbResult.matched && kbResult.bin_color) {
+    return {
+      bin_color: kbResult.bin_color,
+      bin_name: kbResult.bin_name,
+      guidelines: kbResult.guidelines,
+      explanation: kbResult.explanation,
+      item_detected: kbResult.item_detected,
+      isAi: false
+    };
+  }
+
+  // Check general app FAQs
+  for (const [pattern, ans] of APP_FAQS) {
+    if (pattern.test(clean)) {
+      return {
+        text: ans,
+        isAi: false
+      };
+    }
+  }
+
+  // Knowledge base fallback with instructions
+  return {
+    bin_color: null,
+    text: kbResult.explanation || 'I couldn\'t find that exact item. Could you clarify if it is organic kitchen waste, dry plastic/paper, hazardous chemical/glass, or sanitary waste?',
+    guidelines: kbResult.guidelines,
+    isAi: false
+  };
+}
+
+async function handleSendMessage(rawText) {
+  const text = (rawText || '').trim();
+  if (!text) return;
+
+  // Append user message
+  const userMsg = {
+    id: 'user-' + Date.now(),
+    sender: 'user',
+    text: text,
+    timestamp: Date.now()
+  };
+  chatHistory.push(userMsg);
+  chatMessagesEl.appendChild(renderMessageElement(userMsg));
+  saveChatHistory();
+  scrollChatBottom(true);
+
+  // Show typing indicator
+  typingEl.classList.add('show');
+  scrollChatBottom(true);
+
+  // Simulate responsive thinking time (400-600ms)
+  const [result] = await Promise.all([
+    processDisposalQuery(text),
+    new Promise(resolve => setTimeout(resolve, 450 + Math.random() * 250))
+  ]);
+
+  typingEl.classList.remove('show');
+
+  const botMsg = {
+    id: 'bot-' + Date.now(),
+    sender: 'bot',
+    timestamp: Date.now(),
+    ...result
+  };
+  chatHistory.push(botMsg);
+  chatMessagesEl.appendChild(renderMessageElement(botMsg));
+  saveChatHistory();
+  scrollChatBottom(true);
+}
+
+if (chatFormEl) {
+  chatFormEl.addEventListener('submit', e => {
+    e.preventDefault();
+    const text = chatInputEl.value;
+    chatInputEl.value = '';
+    handleSendMessage(text);
+  });
+}
+
+// Quick suggestion chips handler
+if (suggestionChipsEl) {
+  suggestionChipsEl.querySelectorAll('.suggestion-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const q = chip.dataset.query;
+      if (q) handleSendMessage(q);
+    });
+  });
+}
+
+// Clear chat history
+if (clearChatBtnEl) {
+  clearChatBtnEl.addEventListener('click', () => {
+    if (confirm('Clear your chat history?')) {
+      localStorage.removeItem(CHAT_STORAGE_KEY);
+      chatHistory = [
+        {
+          id: 'welcome-reset-' + Date.now(),
+          sender: 'bot',
+          text: 'Chat history cleared! Ask me how to dispose of any item or choose a quick suggestion below.',
+          timestamp: Date.now()
+        }
+      ];
+      saveChatHistory();
+      renderAllMessages();
+      showToast('Chat history cleared');
+    }
+  });
+}
+
+/* ═══════════════════════════════════════════
+   PROFILE TAB — Trust Score, Realtime & Reports
+═══════════════════════════════════════════ */
+
+const trustRingFillEl = document.getElementById('trustRingFill');
+const trustRingTrackEl= document.getElementById('trustRingTrack');
+const trustRingNumEl  = document.getElementById('trustRingNum');
+const trustTierBadgeEl= document.getElementById('trustTierBadge');
+const trustTierIconEl = document.getElementById('trustTierIcon');
+const trustTierTextEl = document.getElementById('trustTierText');
+const statReportsEl   = document.getElementById('statReports');
+const statUpvotesEl   = document.getElementById('statUpvotes');
+const statCleanedEl   = document.getElementById('statCleaned');
+const myReportsCountEl= document.getElementById('myReportsCount');
+const myReportsListEl = document.getElementById('myReportsList');
+
+const RING_CIRCUMFERENCE = 2 * Math.PI * 56; // 351.86
+
+function updateTrustScoreUI(score) {
+  const cleanScore = Math.max(0, Math.min(100, Math.round(score !== undefined ? score : 50)));
+  
+  if (trustRingNumEl) trustRingNumEl.textContent = cleanScore;
+  
+  const offset = RING_CIRCUMFERENCE - (cleanScore / 100) * RING_CIRCUMFERENCE;
+  if (trustRingFillEl) trustRingFillEl.style.strokeDashoffset = offset;
+
+  // Color-coded: <40 red, 40-79 amber, >=80 green with "Trusted Reporter" badge
+  if (cleanScore < 40) {
+    if (trustRingFillEl)  trustRingFillEl.style.stroke = '#ef4444';
+    if (trustRingTrackEl) trustRingTrackEl.style.stroke = 'rgba(239, 68, 68, 0.18)';
+    if (trustRingNumEl)   trustRingNumEl.style.color = '#ef4444';
+    if (trustTierBadgeEl) {
+      trustTierBadgeEl.className = 'trust-badge-pill low';
+      trustTierIconEl.textContent = '⚠️';
+      trustTierTextEl.textContent = 'Low Trust (<40)';
+    }
+  } else if (cleanScore < 80) {
+    if (trustRingFillEl)  trustRingFillEl.style.stroke = '#f59e0b';
+    if (trustRingTrackEl) trustRingTrackEl.style.stroke = 'rgba(245, 158, 11, 0.18)';
+    if (trustRingNumEl)   trustRingNumEl.style.color = '#d97706';
+    if (trustTierBadgeEl) {
+      trustTierBadgeEl.className = 'trust-badge-pill contributor';
+      trustTierIconEl.textContent = '🌟';
+      trustTierTextEl.textContent = 'Community Contributor (40–79)';
+    }
+  } else {
+    // >= 80: Green with "Trusted Reporter" badge
+    if (trustRingFillEl)  trustRingFillEl.style.stroke = '#16a34a';
+    if (trustRingTrackEl) trustRingTrackEl.style.stroke = 'rgba(22, 163, 74, 0.18)';
+    if (trustRingNumEl)   trustRingNumEl.style.color = '#15803d';
+    if (trustTierBadgeEl) {
+      trustTierBadgeEl.className = 'trust-badge-pill trusted';
+      trustTierIconEl.textContent = '✨';
+      trustTierTextEl.textContent = 'Trusted Reporter (80+)';
+    }
+  }
+
+  // Sync topbar trust badge
+  const tb = document.getElementById('trustBadge');
+  if (tb) tb.textContent = String.fromCodePoint(0x2B50) + ' ' + cleanScore + ' pts';
+}
+
+let myReportsData = [];
+
+function renderMyReports() {
+  if (!myReportsListEl) return;
+
+  if (!myReportsData.length) {
+    myReportsListEl.innerHTML = `
+      <div class="my-reports-empty">
+        <span class="my-reports-empty-icon">🌱</span>
+        <div class="my-reports-empty-title">No reports submitted yet</div>
+        <div class="my-reports-empty-sub">Help clean your community by reporting dump sites and earning trust points!</div>
+        <button class="my-reports-create-btn" id="createFirstRepBtn" type="button">+ Report Dump Site</button>
+      </div>
+    `;
+    const btn = document.getElementById('createFirstRepBtn');
+    if (btn) btn.addEventListener('click', () => switchTab('report'));
+    return;
+  }
+
+  myReportsListEl.innerHTML = myReportsData.map(r => {
+    const thumbHtml = r.photo_url
+      ? `<div class="my-report-thumb"><img src="${escapeHtml(r.photo_url)}" alt="Report" loading="lazy" /></div>`
+      : `<div class="my-report-thumb">🗑️</div>`;
+
+    let statusCls = 'pending';
+    let statusText = '⏳ Pending';
+    if (r.status === 'verified') {
+      statusCls = 'verified';
+      statusText = '✓ Verified';
+    } else if (r.status === 'cleaned') {
+      statusCls = 'cleaned';
+      statusText = '🧹 Cleaned';
+    }
+
+    const titleText = r.description
+      ? escapeHtml(r.description.slice(0, 48))
+      : `${parseFloat(r.lat).toFixed(4)}°N, ${parseFloat(r.lng).toFixed(4)}°E`;
+
+    return `
+      <div class="my-report-card" data-lat="${r.lat}" data-lng="${r.lng}" title="Click to view on map">
+        ${thumbHtml}
+        <div class="my-report-details">
+          <div class="my-report-row1">
+            <span class="my-report-desc">${titleText}</span>
+            <span class="my-rep-status ${statusCls}">${statusText}</span>
+          </div>
+          <div class="my-report-meta">
+            <span>${timeAgo(r.created_at)}</span>
+            <span class="my-report-upvotes">👍 ${r.verification_count || 0} upvotes</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Tapping a report pans map to it
+  myReportsListEl.querySelectorAll('.my-report-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const lat = parseFloat(card.dataset.lat);
+      const lng = parseFloat(card.dataset.lng);
+      switchTab('home');
+      if (mapInstance && !isNaN(lat) && !isNaN(lng)) {
+        setTimeout(() => mapInstance.flyTo([lat, lng], 16, { duration: 0.8 }), 120);
+      }
+    });
+  });
+}
+
+async function loadProfile() {
+  const fullName = ME.full_name || 'Citizen User';
+  const parts = fullName.trim().split(/\s+/);
+  const initials = (parts.length > 1 ? parts[0][0] + parts[1][0] : parts[0][0] || 'U').toUpperCase();
+
+  const avatarEl = document.getElementById('profileAvatar');
+  const nameEl   = document.getElementById('profileName');
+  const emailEl  = document.getElementById('profileEmail');
+  if (avatarEl) avatarEl.textContent = initials;
+  if (nameEl)   nameEl.textContent   = fullName;
+
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session && emailEl) emailEl.textContent = session.user.email;
+
+  // Trust score ring
+  updateTrustScoreUI(ME.trust_score);
+
+  try {
+    const { data: myReps, error } = await supabase
+      .from('reports')
+      .select('id,photo_url,lat,lng,description,status,verification_count,created_at')
+      .eq('reporter_id', ME.id)
+      .order('created_at', { ascending: false });
+
+    if (!error && myReps && myReps.length > 0) {
+      myReportsData = myReps;
+    } else {
+      myReportsData = [
+        {
+          id: 'demo-rep-1',
+          reporter_id: ME.id,
+          photo_url: 'https://images.unsplash.com/photo-1605600659908-0ef719419d41?w=400',
+          lat: 28.6139,
+          lng: 77.2090,
+          description: 'Overflowing municipal bin near Block C park',
+          status: 'verified',
+          verification_count: 4,
+          created_at: new Date(Date.now() - 3600000 * 4).toISOString()
+        },
+        {
+          id: 'demo-rep-2',
+          reporter_id: ME.id,
+          photo_url: 'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=400',
+          lat: 28.6152,
+          lng: 77.2115,
+          description: 'Cleaned plastic waste pile near main market road',
+          status: 'cleaned',
+          verification_count: 6,
+          created_at: new Date(Date.now() - 86400000 * 2).toISOString()
+        },
+        {
+          id: 'demo-rep-3',
+          reporter_id: ME.id,
+          photo_url: null,
+          lat: 28.6120,
+          lng: 77.2080,
+          description: 'Construction debris dumped overnight on 2nd cross road',
+          status: 'pending_verification',
+          verification_count: 1,
+          created_at: new Date(Date.now() - 1800000).toISOString()
+        }
+      ];
+    }
+  } catch (err) {
+    myReportsData = [
+      {
+        id: 'demo-rep-1',
+        reporter_id: ME.id,
+        photo_url: 'https://images.unsplash.com/photo-1605600659908-0ef719419d41?w=400',
+        lat: 28.6139,
+        lng: 77.2090,
+        description: 'Overflowing municipal bin near Block C park',
+        status: 'verified',
+        verification_count: 4,
+        created_at: new Date(Date.now() - 3600000 * 4).toISOString()
+      },
+      {
+        id: 'demo-rep-2',
+        reporter_id: ME.id,
+        photo_url: 'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=400',
+        lat: 28.6152,
+        lng: 77.2115,
+        description: 'Cleaned plastic waste pile near main market road',
+        status: 'cleaned',
+        verification_count: 6,
+        created_at: new Date(Date.now() - 86400000 * 2).toISOString()
+      },
+      {
+        id: 'demo-rep-3',
+        reporter_id: ME.id,
+        photo_url: null,
+        lat: 28.6120,
+        lng: 77.2080,
+        description: 'Construction debris dumped overnight on 2nd cross road',
+        status: 'pending_verification',
+        verification_count: 1,
+        created_at: new Date(Date.now() - 1800000).toISOString()
+      }
+    ];
+  }
+
+  const totalReports = myReportsData.length;
+  const totalUpvotes = myReportsData.reduce((sum, r) => sum + (r.verification_count || 0), 0);
+  const totalCleaned = myReportsData.filter(r => r.status === 'cleaned').length;
+
+  if (statReportsEl) statReportsEl.textContent = totalReports;
+  if (statUpvotesEl) statUpvotesEl.textContent = totalUpvotes;
+  if (statCleanedEl) statCleanedEl.textContent = totalCleaned;
+  if (myReportsCountEl) myReportsCountEl.textContent = totalReports;
+
+  renderMyReports();
+}
+loadProfile();
+
+/* REALTIME SUBSCRIPTION ON USER'S PROFILE ROW */
+supabase.channel('citizen-profile-live-' + ME.id)
+  .on('postgres_changes', {
+    event: 'UPDATE',
+    schema: 'public',
+    table: 'profiles',
+    filter: 'id=eq.' + ME.id
+  }, payload => {
+    if (payload.new && payload.new.trust_score !== undefined) {
+      const oldScore = ME.trust_score;
+      ME.trust_score = payload.new.trust_score;
+      updateTrustScoreUI(ME.trust_score);
+      const diff = ME.trust_score - oldScore;
+      const diffText = diff > 0 ? ` (+${diff} pts!)` : '';
+      showToast(`⭐ Trust Score updated: ${ME.trust_score} pts${diffText}`);
+    }
+  })
+  .subscribe();
+
+/* REALTIME SUBSCRIPTION ON REPORTS (for upvotes and status changes on user's reports) */
+supabase.channel('citizen-my-reports-' + ME.id)
+  .on('postgres_changes', {
+    event: '*',
+    schema: 'public',
+    table: 'reports',
+    filter: 'reporter_id=eq.' + ME.id
+  }, () => {
+    loadProfile();
+  })
+  .subscribe();
+
+/* BROADCAST CHANNEL & STORAGE SYNC (for live cross-role simulation) */
+try {
+  const syncChannel = new BroadcastChannel('ecoroute-sync');
+  syncChannel.addEventListener('message', ev => {
+    const d = ev.data;
+    if (!d) return;
+    if (d.type === 'CITIZEN_TRUST_AWARDED') {
+      const oldScore = ME.trust_score;
+      ME.trust_score = d.new_score;
+      updateTrustScoreUI(ME.trust_score);
+      showToast(`⭐ Trust Score updated: ${ME.trust_score} pts (+${d.diff || 5} pts!)`);
+    } else if (d.type === 'HOTSPOT_CLEANED') {
+      showToast(`✨ Dump cleaned by driver! +10 points awarded.`);
+      loadFeed();
+      loadProfile();
+    } else if (d.type === 'NEW_REPORT') {
+      loadFeed();
+    } else if (d.type === 'RESET_DEMO') {
+      showToast('✨ Demo data reset to baseline');
+      loadFeed();
+      loadProfile();
+    }
+  });
+} catch (e) {}
+
+window.addEventListener('storage', e => {
+  if (e.key === 'ecoroute_demo_session' && e.newValue) {
+    try {
+      const parsed = JSON.parse(e.newValue);
+      if (parsed && parsed.profile && parsed.profile.id === ME.id) {
+        if (parsed.profile.trust_score !== ME.trust_score) {
+          ME.trust_score = parsed.profile.trust_score;
+          updateTrustScoreUI(ME.trust_score);
+          showToast(`⭐ Trust Score updated: ${ME.trust_score} pts`);
+        }
+      }
+    } catch(err) {}
+  }
+  if (e.key === 'ecoroute_demo_reports') {
+    loadFeed();
+  }
+});
+
+document.getElementById('logoutBtn').addEventListener('click', () => logout());
+document.getElementById('avatarBtn').addEventListener('click', () => switchTab('profile'));
+
+/* PWA Service Worker Registration */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(err => {
+      console.info('[PWA] Service worker registration note:', err.message);
+    });
+  });
+}
+</script>
+</body>
+</html>

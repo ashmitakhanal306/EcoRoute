@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>EcoRoute — Driver Route Console</title>
+  <meta name="description" content="High-contrast route navigation and stop cleanup console for municipal waste collection drivers." />
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#16a34a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="EcoRoute Driver" />
+  <link rel="apple-touch-icon" href="/assets/icons/icon-192.png" />
+  <link rel="icon" type="image/png" sizes="48x48" href="/assets/icons/favicon.png" />
+  <link rel="icon" type="image/svg+xml" href="/assets/icons/icon.svg" />
+  <link rel="stylesheet" href="../shared/theme.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body {
+      width: 100%; height: 100%; margin: 0; padding: 0;
+      background: #040905; color: #f8fafc;
+      overflow: hidden; font-family: var(--font-sans);
+      user-select: none;
+    }
+
+    #driverApp {
+      position: relative; width: 100vw; height: 100vh;
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+
+    /* Auth Guard Loader */
+    #guardLoader {
+      position: fixed; inset: 0; z-index: 9999;
+      background: #040905;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
+      transition: opacity 0.3s;
+    }
+    #guardLoader.hidden { opacity: 0; pointer-events: none; }
+    #guardLoader p { color: #86efac; font-size: 0.9rem; font-weight: 700; letter-spacing: 0.05em; }
+
+    /* Map fills entire screen */
+    #mapContainer {
+      position: absolute; inset: 0; z-index: 1;
+      width: 100%; height: 100%;
+    }
+    #map {
+      width: 100%; height: 100%; background: #060d07;
+    }
+
+    /* ── TOP HUD BAR ─────────────────────────────────────── */
+    .top-hud {
+      position: absolute; top: 12px; left: 12px; right: 12px; z-index: 1000;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 10px; pointer-events: none;
+    }
+    .hud-left {
+      display: flex; align-items: center; gap: 8px; pointer-events: auto;
+    }
+    .hud-brand {
+      background: rgba(8, 17, 10, 0.92);
+      backdrop-filter: blur(14px);
+      border: 1.5px solid rgba(34, 197, 94, 0.3);
+      padding: 8px 14px; border-radius: 999px;
+      display: flex; align-items: center; gap: 8px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+    }
+    .hud-logo-icon {
+      width: 22px; height: 22px; border-radius: 6px;
+      background: linear-gradient(135deg, #16a34a, #059669);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 900; color: #fff;
+    }
+    .hud-title {
+      font-size: 0.85rem; font-weight: 800; color: #fff; letter-spacing: -0.01em;
+    }
+    .gps-status-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #22c55e; box-shadow: 0 0 8px #22c55e;
+      animation: pulseDot 2s infinite;
+    }
+    @keyframes pulseDot { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.85); } }
+
+    .hud-right {
+      display: flex; align-items: center; gap: 8px; pointer-events: auto;
+    }
+    .hud-counter-pill {
+      background: rgba(8, 17, 10, 0.92);
+      backdrop-filter: blur(14px);
+      border: 1.5px solid rgba(34, 197, 94, 0.3);
+      padding: 8px 14px; border-radius: 999px;
+      font-size: 0.8rem; font-weight: 800; color: #86efac;
+      display: flex; align-items: center; gap: 6px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+    }
+    .hud-counter-pill .num {
+      background: #16a34a; color: #fff; font-size: 0.75rem;
+      padding: 2px 7px; border-radius: 999px;
+    }
+
+    .sim-toggle-btn {
+      background: rgba(8, 17, 10, 0.92);
+      backdrop-filter: blur(14px);
+      border: 1.5px solid rgba(255, 255, 255, 0.2);
+      padding: 8px 12px; border-radius: 999px;
+      font-size: 0.75rem; font-weight: 800; color: #cbd5e1;
+      cursor: pointer; display: flex; align-items: center; gap: 6px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+      transition: all 0.2s;
+    }
+    .sim-toggle-btn:hover { border-color: #22c55e; color: #fff; }
+    .sim-toggle-btn.active {
+      background: #15803d; border-color: #4ade80; color: #fff;
+      box-shadow: 0 0 16px rgba(34,197,94,0.6);
+    }
+
+    .hud-icon-btn {
+      width: 40px; height: 40px; border-radius: 50%;
+      background: rgba(8, 17, 10, 0.92);
+      backdrop-filter: blur(14px);
+      border: 1.5px solid rgba(239, 68, 68, 0.35);
+      color: #fca5a5; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+      transition: all 0.15s;
+    }
+    .hud-icon-btn:hover { background: rgba(239,68,68,0.25); color: #fff; border-color: #ef4444; }
+    .hud-icon-btn svg { width: 18px; height: 18px; }
+
+    /* Map Recenter Quick Action */
+    .recenter-btn {
+      position: absolute; right: 16px; bottom: 250px; z-index: 1000;
+      width: 48px; height: 48px; border-radius: 50%;
+      background: rgba(8, 17, 10, 0.94);
+      backdrop-filter: blur(12px);
+      border: 1.5px solid rgba(34, 197, 94, 0.35);
+      color: #22c55e; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.6);
+      transition: transform 0.15s, background 0.15s;
+    }
+    .recenter-btn:hover { transform: scale(1.08); background: #0c2010; }
+    .recenter-btn:active { transform: scale(0.95); }
+    .recenter-btn svg { width: 22px; height: 22px; }
+
+    /* ── FLOATING NEXT STOP CARD (PINNED BOTTOM) ──────────── */
+    .next-stop-container {
+      position: absolute; bottom: 16px; left: 16px; right: 16px;
+      z-index: 1000; max-width: 540px; margin: 0 auto;
+      pointer-events: auto;
+    }
+
+    .next-stop-card {
+      background: rgba(9, 18, 11, 0.94);
+      backdrop-filter: blur(20px) saturate(1.4);
+      -webkit-backdrop-filter: blur(20px) saturate(1.4);
+      border: 1.5px solid rgba(34, 197, 94, 0.3);
+      border-radius: 28px;
+      padding: 18px 20px 20px;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.8), 0 0 0 1px rgba(34,197,94,0.12) inset;
+      display: flex; flex-direction: column; gap: 14px;
+      animation: slideUpCard 0.4s var(--ease-out) both;
+      transition: border-color 0.25s, box-shadow 0.25s;
+    }
+    .next-stop-card.flash-success {
+      border-color: #22c55e;
+      box-shadow: 0 0 32px rgba(34, 197, 94, 0.8), 0 0 0 2px #22c55e inset;
+    }
+
+    @keyframes slideUpCard {
+      from { transform: translateY(60px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .stop-header-row {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 10px;
+    }
+    .stop-tag-wrap {
+      display: flex; align-items: center; gap: 8px;
+    }
+    .stop-order-chip {
+      font-size: 0.72rem; font-weight: 900; letter-spacing: 0.08em;
+      text-transform: uppercase; color: #86efac;
+      background: rgba(34, 197, 94, 0.16);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      padding: 4px 10px; border-radius: 999px;
+    }
+    .stop-type-badge {
+      font-size: 0.72rem; font-weight: 800; letter-spacing: 0.05em;
+      padding: 4px 10px; border-radius: 999px;
+      text-transform: uppercase; display: inline-flex; align-items: center; gap: 4px;
+    }
+    .stop-type-badge.chronic {
+      background: rgba(239, 68, 68, 0.2);
+      color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4);
+    }
+    .stop-type-badge.report {
+      background: rgba(59, 130, 246, 0.2);
+      color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.4);
+    }
+
+    .stop-distance-eta {
+      font-size: 0.82rem; font-weight: 800; color: #cbd5e1;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .stop-distance-eta .highlight {
+      color: #fef08a; font-size: 0.88rem;
+    }
+
+    /* Stop Name */
+    .stop-name-title {
+      font-size: 1.25rem; font-weight: 900; color: #ffffff;
+      line-height: 1.25; letter-spacing: -0.02em;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    /* Giant Touch Target Button (min 64px height) */
+    .btn-clean {
+      width: 100%;
+      min-height: 64px;
+      height: 68px;
+      background: linear-gradient(135deg, #16a34a 0%, #059669 100%);
+      color: #ffffff;
+      border: none;
+      border-radius: 18px;
+      font-size: 1.18rem;
+      font-weight: 900;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      box-shadow: 0 8px 30px rgba(22, 163, 74, 0.5), 0 0 0 1px rgba(255,255,255,0.2) inset;
+      transition: transform 0.15s var(--ease-spring), box-shadow 0.15s, background 0.2s;
+      font-family: var(--font-sans);
+    }
+    .btn-clean:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 36px rgba(22, 163, 74, 0.65);
+    }
+    .btn-clean:active {
+      transform: scale(0.97);
+    }
+    .btn-clean.loading {
+      opacity: 0.8; pointer-events: none;
+    }
+    .btn-clean.cleaned-flash {
+      background: #059669;
+      box-shadow: 0 0 35px #22c55e;
+    }
+    .btn-clean svg { width: 26px; height: 26px; flex-shrink: 0; }
+
+    /* Completion card state */
+    .route-complete-card {
+      display: none; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center; padding: 28px 20px; gap: 12px;
+      background: rgba(9, 18, 11, 0.95);
+      border: 1.5px solid rgba(34, 197, 94, 0.4);
+      border-radius: 28px;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.8);
+      animation: popIn 0.4s var(--ease-spring) both;
+    }
+    .complete-icon {
+      font-size: 3rem; margin-bottom: 2px;
+    }
+    .complete-title {
+      font-size: 1.35rem; font-weight: 900; color: #fff;
+    }
+    .complete-sub {
+      font-size: 0.85rem; color: #94a3b8; max-width: 320px; line-height: 1.45;
+    }
+    .btn-return-depot {
+      margin-top: 8px; width: 100%; min-height: 56px;
+      background: #1e293b; color: #f8fafc; border: 1.5px solid rgba(255,255,255,0.15);
+      border-radius: 16px; font-size: 1rem; font-weight: 800; cursor: pointer;
+    }
+
+    /* ── CUSTOM LEAFLET MARKERS ──────────────────────────── */
+    .stop-marker {
+      background: transparent; border: none;
+    }
+    .stop-marker-inner {
+      width: 34px; height: 34px; border-radius: 50%;
+      background: #0f172a; border: 2.5px solid #22c55e;
+      color: #22c55e; font-size: 0.85rem; font-weight: 900;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.8);
+      transition: all 0.3s;
+    }
+    .stop-marker.current .stop-marker-inner {
+      width: 44px; height: 44px;
+      background: #16a34a; border: 3px solid #ffffff;
+      color: #ffffff; font-size: 1.1rem;
+      box-shadow: 0 0 24px #22c55e, 0 6px 18px rgba(0,0,0,0.9);
+      animation: markerPulse 2s infinite;
+    }
+    .stop-marker.chronic .stop-marker-inner {
+      border-color: #ef4444; color: #ef4444;
+    }
+    .stop-marker.current.chronic .stop-marker-inner {
+      background: #dc2626; border-color: #ffffff; color: #ffffff;
+      box-shadow: 0 0 24px #ef4444;
+    }
+    .stop-marker.cleaned .stop-marker-inner {
+      background: #1e293b; border-color: #64748b; color: #94a3b8;
+      opacity: 0.6;
+    }
+    @keyframes markerPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.12); }
+    }
+
+    /* Live Truck Marker */
+    .driver-truck-marker {
+      background: transparent; border: none;
+    }
+    .driver-truck-inner {
+      width: 48px; height: 48px; border-radius: 50%;
+      background: linear-gradient(135deg, #16a34a, #047857);
+      border: 3px solid #ffffff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem;
+      box-shadow: 0 0 25px rgba(34, 197, 94, 0.8), 0 6px 20px rgba(0,0,0,0.9);
+      transition: transform 0.4s var(--ease-out);
+    }
+    .truck-radar-wave {
+      position: absolute; inset: -10px; border-radius: 50%;
+      border: 2px solid rgba(34, 197, 94, 0.7);
+      animation: truckRadar 2s ease-out infinite;
+      pointer-events: none;
+    }
+    @keyframes truckRadar {
+      0% { transform: scale(0.6); opacity: 0.9; }
+      100% { transform: scale(1.8); opacity: 0; }
+    }
+
+    /* Toast Notification */
+    #toast {
+      position: absolute; top: 76px; left: 50%; transform: translateX(-50%) translateY(-10px);
+      background: rgba(10, 20, 12, 0.95);
+      border: 1px solid rgba(34, 197, 94, 0.4);
+      color: #dcfce7; padding: 10px 18px; border-radius: 999px;
+      font-size: 0.825rem; font-weight: 700; z-index: 2000;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.7);
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.25s, transform 0.25s var(--ease-out);
+      white-space: nowrap; max-width: 90%;
+    }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  </style>
+</head>
+<body>
+<div id="driverApp">
+  <!-- Auth Guard Loader -->
+  <div id="guardLoader">
+    <div class="spinner spinner--lg"></div>
+    <p>Connecting to Municipal Route Dispatch…</p>
+  </div>
+
+  <!-- Fullscreen Map -->
+  <div id="mapContainer">
+    <div id="map"></div>
+  </div>
+
+  <!-- Top HUD Bar -->
+  <header class="top-hud">
+    <div class="hud-left">
+      <div class="hud-brand">
+        <div class="hud-logo-icon">🚛</div>
+        <span class="hud-title">EcoRoute</span>
+        <div class="gps-status-dot" title="GPS Tracking Active"></div>
+      </div>
+    </div>
+    <div class="hud-right">
+      <div class="hud-counter-pill" id="stopsRemainingPill">
+        <span>Stops Left</span>
+        <span class="num" id="stopsLeftCount">0</span>
+      </div>
+      <button class="sim-toggle-btn" id="simDrivingBtn" title="Simulate driving along route for demo" type="button">
+        <span>⚡ Sim Drive</span>
+      </button>
+      <button class="hud-icon-btn" id="logoutBtn" title="Sign Out" type="button" aria-label="Sign Out">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Recenter Button -->
+  <button class="recenter-btn" id="recenterBtn" title="Center map on truck" type="button">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
+      <circle cx="12" cy="12" r="8" stroke-width="1.5"/>
+    </svg>
+  </button>
+
+  <!-- Floating Next Stop Card -->
+  <div class="next-stop-container">
+    <div class="next-stop-card" id="nextStopCard">
+      <div class="stop-header-row">
+        <div class="stop-tag-wrap">
+          <span class="stop-order-chip" id="stopOrderChip">Stop 1</span>
+          <span class="stop-type-badge chronic" id="stopTypeBadge">🔥 Chronic</span>
+        </div>
+        <div class="stop-distance-eta" id="stopDistanceEta">
+          <span>📍 <strong class="highlight" id="nextStopDist">— m</strong></span>
+          <span>&bull;</span>
+          <span>⏱️ <strong class="highlight" id="nextStopEta">— mins</strong></span>
+        </div>
+      </div>
+
+      <div class="stop-name-title" id="nextStopName">
+        Loading today's collection route…
+      </div>
+
+      <!-- Giant Touch Target Action Button (min 64px height) -->
+      <button class="btn-clean" id="markCleanedBtn" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        <span id="markCleanedText">MARK AS CLEANED</span>
+      </button>
+    </div>
+
+    <!-- Route Completed View -->
+    <div class="route-complete-card" id="routeCompleteCard">
+      <div class="complete-icon">🎉</div>
+      <div class="complete-title">All Dumps Cleaned!</div>
+      <div class="complete-sub">Today's collection route is 100% complete. All community reporters have received trust score rewards.</div>
+      <button class="btn-return-depot" id="returnDepotBtn" type="button">Return to Municipal Depot</button>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script type="module">
+import { requireRole, logout } from '../shared/auth.js';
+import { supabase } from '../shared/supabaseClient.js';
+import {
+  fetchDailyStops,
+  orderStopsNearestNeighbor,
+  getRouteGeometryOSRM,
+  haversineDistance
+} from './route.js';
+
+// ── Role Guard ───────────────────────────────────────────────
+const urlParams = new URLSearchParams(window.location.search);
+let profile = null;
+if (urlParams.get('demo') === '1' || urlParams.get('demo') === 'true') {
+  profile = {
+    id: 'bbbbbbbb-0000-0000-0000-000000000002',
+    full_name: 'Suresh Yadav (Driver)',
+    role: 'driver',
+    trust_score: 100
+  };
+  localStorage.setItem('ecoroute_demo_session', JSON.stringify({
+    session: { user: { id: profile.id, email: 'driver@cleangreen.in' } },
+    profile
+  }));
+} else {
+  profile = await requireRole('driver');
+}
+if (!profile) throw new Error('Not authorised as driver');
+const DRIVER = profile;
+
+document.getElementById('guardLoader').classList.add('hidden');
+
+// ── State Variables ──────────────────────────────────────────
+let map = null;
+let truckMarker = null;
+let currentCoords = { lat: 28.6250, lng: 77.2150 }; // Default initial location
+let rawStops = [];
+let routeStops = [];
+let activeStopIndex = 0;
+let routePolylines = [];
+let stopMarkers = [];
+let isSimulationActive = false;
+let simulationInterval = null;
+let lastGpsUpsertTime = 0;
+
+// DOM Elements
+const nextStopCard       = document.getElementById('nextStopCard');
+const routeCompleteCard  = document.getElementById('routeCompleteCard');
+const stopOrderChip      = document.getElementById('stopOrderChip');
+const stopTypeBadge      = document.getElementById('stopTypeBadge');
+const nextStopDist       = document.getElementById('nextStopDist');
+const nextStopEta        = document.getElementById('nextStopEta');
+const nextStopName       = document.getElementById('nextStopName');
+const markCleanedBtn     = document.getElementById('markCleanedBtn');
+const markCleanedText    = document.getElementById('markCleanedText');
+const stopsLeftCount     = document.getElementById('stopsLeftCount');
+const simDrivingBtn      = document.getElementById('simDrivingBtn');
+const recenterBtn        = document.getElementById('recenterBtn');
+const logoutBtn          = document.getElementById('logoutBtn');
+const toastEl            = document.getElementById('toast');
+
+let toastTimer = null;
+function showToast(msg) {
+  clearTimeout(toastTimer);
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  toastTimer = setTimeout(() => toastEl.classList.remove('show'), 3000);
+}
+
+// ── Map Initialization with Dark Matter Tiles ────────────────
+function initMap(initialLat, initialLng) {
+  map = L.map('map', {
+    zoomControl: false,
+    attributionControl: false
+  }).setView([initialLat, initialLng], 14);
+
+  // Esri World Dark Gray Base tiles (Official Dark mode, high contrast, zero watermark)
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+    maxZoom: 18,
+    attribution: 'Esri, HERE, MapmyIndia'
+  }).addTo(map);
+
+  // Create truck marker with pulsing radar animation
+  const truckIcon = L.divIcon({
+    className: 'driver-truck-marker',
+    html: `
+      <div class="driver-truck-inner">
+        <div class="truck-radar-wave"></div>
+        🚛
+      </div>
+    `,
+    iconSize: [48, 48],
+    iconAnchor: [24, 24]
+  });
+
+  truckMarker = L.marker([initialLat, initialLng], {
+    icon: truckIcon,
+    zIndexOffset: 2000
+  }).addTo(map);
+}
+
+// ── Upsert Truck Location to Database (every 3-5s) ───────────
+async function updateTruckLocationInDb(lat, lng) {
+  const now = Date.now();
+  if (now - lastGpsUpsertTime < 3000) return;
+  lastGpsUpsertTime = now;
+
+  try {
+    const syncChannel = new BroadcastChannel('ecoroute-sync');
+    syncChannel.postMessage({
+      type: 'TRUCK_MOVED',
+      driver_id: DRIVER.id,
+      driver_name: DRIVER.full_name || 'Suresh Yadav',
+      lat: parseFloat(lat.toFixed(6)),
+      lng: parseFloat(lng.toFixed(6)),
+      updated_at: new Date().toISOString()
+    });
+    localStorage.setItem('ecoroute_sync_truck', JSON.stringify({
+      driver_id: DRIVER.id,
+      lat: parseFloat(lat.toFixed(6)),
+      lng: parseFloat(lng.toFixed(6)),
+      timestamp: now
+    }));
+  } catch (e) {}
+
+  try {
+    await supabase.from('truck_locations').upsert({
+      driver_id: DRIVER.id,
+      lat: parseFloat(lat.toFixed(6)),
+      lng: parseFloat(lng.toFixed(6)),
+      updated_at: new Date().toISOString()
+    });
+  } catch (err) {
+    console.warn('[truck_locations] Upsert failed:', err);
+  }
+}
+
+// Update truck on map
+function updateTruckMarkerPosition(lat, lng) {
+  currentCoords = { lat, lng };
+  if (truckMarker) {
+    truckMarker.setLatLng([lat, lng]);
+  }
+  updateTruckLocationInDb(lat, lng);
+  updateDistanceToActiveStop();
+}
+
+// ── GPS Tracking via watchPosition ───────────────────────────
+function startGpsTracking() {
+  if (!navigator.geolocation) {
+    console.warn('Geolocation not supported, using default driver location');
+    return;
+  }
+
+  navigator.geolocation.watchPosition(
+    pos => {
+      if (isSimulationActive) return; // Simulation controls position
+      const { latitude: lat, longitude: lng } = pos.coords;
+      updateTruckMarkerPosition(lat, lng);
+    },
+    err => {
+      console.warn('Geolocation watch error:', err.message);
+    },
+    { enableHighAccuracy: true, maximumAge: 4000, timeout: 10000 }
+  );
+}
+
+// ── Calculate Distance & ETA to Current Stop ─────────────────
+function updateDistanceToActiveStop() {
+  const currentStop = routeStops[activeStopIndex];
+  if (!currentStop) return;
+
+  const distKm = haversineDistance(
+    currentCoords.lat, currentCoords.lng,
+    currentStop.lat, currentStop.lng
+  );
+
+  let distLabel = '';
+  if (distKm < 1) {
+    distLabel = Math.round(distKm * 1000) + ' m';
+  } else {
+    distLabel = distKm.toFixed(1) + ' km';
+  }
+
+  const etaMins = Math.max(1, Math.round(distKm * 2.4 + 1));
+
+  nextStopDist.textContent = distLabel;
+  nextStopEta.textContent  = '~' + etaMins + ' mins';
+}
+
+// ── Route & Stops Rendering ──────────────────────────────────
+function clearRouteGraphics() {
+  routePolylines.forEach(p => map.removeLayer(p));
+  routePolylines = [];
+  stopMarkers.forEach(m => map.removeLayer(m));
+  stopMarkers = [];
+}
+
+async function renderRoute() {
+  if (!map) return;
+  clearRouteGraphics();
+
+  const remainingStops = routeStops.slice(activeStopIndex);
+  stopsLeftCount.textContent = remainingStops.length;
+
+  if (remainingStops.length === 0) {
+    nextStopCard.style.display = 'none';
+    routeCompleteCard.style.display = 'flex';
+    return;
+  }
+
+  nextStopCard.style.display = 'flex';
+  routeCompleteCard.style.display = 'none';
+
+  // 1. Render Stop Markers
+  routeStops.forEach((stop, idx) => {
+    const isCleaned = idx < activeStopIndex;
+    const isCurrent = idx === activeStopIndex;
+
+    let markerClass = 'stop-marker';
+    if (isCleaned) markerClass += ' cleaned';
+    if (isCurrent) markerClass += ' current';
+    if (stop.is_chronic) markerClass += ' chronic';
+
+    const displayNum = isCleaned ? '✓' : (idx + 1);
+
+    const icon = L.divIcon({
+      className: markerClass,
+      html: `<div class="stop-marker-inner">${displayNum}</div>`,
+      iconSize: isCurrent ? [44, 44] : [34, 34],
+      iconAnchor: isCurrent ? [22, 22] : [17, 17]
+    });
+
+    const marker = L.marker([stop.lat, stop.lng], { icon }).addTo(map);
+    marker.bindPopup(`
+      <div style="color:#0f172a; font-family:sans-serif; padding:4px;">
+        <strong>Stop #${idx + 1}: ${stop.name}</strong><br/>
+        <span style="font-size:0.75rem; color:#64748b;">${stop.is_chronic ? '🔥 Chronic Hotspot' : '📋 Citizen Report'}</span>
+      </div>
+    `);
+
+    stopMarkers.push(marker);
+  });
+
+  // 2. Compute OSRM Road Geometry from truck to remaining stops
+  const geometry = await getRouteGeometryOSRM(currentCoords, remainingStops);
+
+  if (geometry.coordinates.length > 1) {
+    // Outer casing (high contrast dark border)
+    const casingPolyline = L.polyline(geometry.coordinates, {
+      color: '#022c15',
+      weight: 10,
+      opacity: 0.9,
+      lineCap: 'round',
+      lineJoin: 'round'
+    }).addTo(map);
+
+    // Inner bright emerald road line
+    const corePolyline = L.polyline(geometry.coordinates, {
+      color: '#10b981',
+      weight: 6,
+      opacity: 0.95,
+      lineCap: 'round',
+      lineJoin: 'round'
+    }).addTo(map);
+
+    routePolylines.push(casingPolyline, corePolyline);
+  }
+
+  // 3. Update Next Stop Card Info
+  const currentStop = remainingStops[0];
+  stopOrderChip.textContent = `Stop ${activeStopIndex + 1} of ${routeStops.length}`;
+
+  if (currentStop.is_chronic) {
+    stopTypeBadge.className = 'stop-type-badge chronic';
+    stopTypeBadge.innerHTML = '🔥 Chronic';
+  } else {
+    stopTypeBadge.className = 'stop-type-badge report';
+    stopTypeBadge.innerHTML = '📋 Citizen Report';
+  }
+
+  nextStopName.textContent = currentStop.name;
+  updateDistanceToActiveStop();
+}
+
+// ── Re-compute Route from Scratch ────────────────────────────
+async function loadAndComputeRoute(maintainCurrent = false) {
+  rawStops = await fetchDailyStops(supabase);
+
+  // If maintaining current stop, filter out already cleaned stops
+  let targetStops = rawStops;
+  if (maintainCurrent && routeStops.length > 0) {
+    const cleanedIds = new Set(routeStops.slice(0, activeStopIndex).map(s => s.id));
+    targetStops = rawStops.filter(s => !cleanedIds.has(s.id));
+  }
+
+  // Order with Nearest-Neighbor TSP starting from current truck coordinates
+  const optimized = orderStopsNearestNeighbor(currentCoords, targetStops);
+
+  if (!maintainCurrent) {
+    routeStops = optimized;
+    activeStopIndex = 0;
+  } else {
+    // Keep already cleaned in the front
+    const cleaned = routeStops.slice(0, activeStopIndex);
+    routeStops = [...cleaned, ...optimized];
+  }
+
+  await renderRoute();
+
+  // Fit bounds to route or stops
+  if (routePolylines.length > 1) {
+    try { map.fitBounds(routePolylines[1].getBounds(), { padding: [60, 60] }); } catch (e) {}
+  } else if (stopMarkers.length > 0) {
+    try { map.fitBounds(L.featureGroup(stopMarkers).getBounds(), { padding: [60, 60] }); } catch (e) {}
+  }
+}
+
+// ── Mark Hotspot Cleaned Action ──────────────────────────────
+async function handleMarkCleaned() {
+  const currentStop = routeStops[activeStopIndex];
+  if (!currentStop) return;
+
+  // 1. Instant Optimistic UI (Haptic + Success Flash)
+  if (navigator.vibrate) {
+    try { navigator.vibrate([40, 50, 40]); } catch (e) {}
+  }
+
+  nextStopCard.classList.add('flash-success');
+  markCleanedBtn.classList.add('cleaned-flash');
+  markCleanedText.textContent = 'CLEANED! 🎉';
+
+  // 2. Broadcast instant cross-tab sync event (for live Admin command center)
+  try {
+    const syncChannel = new BroadcastChannel('ecoroute-sync');
+    syncChannel.postMessage({
+      type: 'HOTSPOT_CLEANED',
+      hotspot_id: currentStop.id,
+      name: currentStop.name,
+      timestamp: new Date().toISOString()
+    });
+    localStorage.setItem('ecoroute_sync_cleaned', JSON.stringify({
+      hotspot_id: currentStop.id,
+      name: currentStop.name,
+      timestamp: Date.now()
+    }));
+
+    // Award +10 trust points to Citizen in demo session and broadcast
+    try {
+      const rawDemo = localStorage.getItem('ecoroute_demo_session');
+      let newScore = 60;
+      if (rawDemo) {
+        const parsed = JSON.parse(rawDemo);
+        if (parsed && parsed.profile && parsed.profile.role === 'citizen') {
+          parsed.profile.trust_score = Math.min(100, (parsed.profile.trust_score || 50) + 10);
+          newScore = parsed.profile.trust_score;
+          localStorage.setItem('ecoroute_demo_session', JSON.stringify(parsed));
+        }
+      }
+      syncChannel.postMessage({
+        type: 'CITIZEN_TRUST_AWARDED',
+        diff: 10,
+        new_score: newScore
+      });
+    } catch(e) {}
+  } catch (e) {}
+
+  // 3. Call Supabase RPC mark_hotspot_cleaned
+  try {
+    const { data, error } = await supabase.rpc('mark_hotspot_cleaned', {
+      p_hotspot_id: currentStop.id
+    });
+
+    if (error) {
+      console.warn('[driver] RPC error, falling back to direct updates:', error.message);
+      // Fallback direct updates if RPC not present in environment
+      await supabase.from('hotspots')
+        .update({ status: 'cleaned', last_cleaned_at: new Date().toISOString() })
+        .eq('id', currentStop.id);
+      await supabase.from('reports')
+        .update({ status: 'cleaned' })
+        .eq('hotspot_id', currentStop.id);
+    }
+
+    showToast('✨ Cleaned! Reporters awarded +10 trust points.');
+  } catch (err) {
+    console.warn('[driver] Network update warning:', err);
+    showToast('✨ Cleaned (Offline Demo mode).');
+  }
+
+  // 3. Auto-advance to next stop
+  setTimeout(async () => {
+    nextStopCard.classList.remove('flash-success');
+    markCleanedBtn.classList.remove('cleaned-flash');
+    markCleanedText.textContent = 'MARK AS CLEANED';
+
+    activeStopIndex++;
+    await renderRoute();
+
+    // Center map on new current stop
+    const nextStop = routeStops[activeStopIndex];
+    if (nextStop && map) {
+      map.flyTo([nextStop.lat, nextStop.lng], 15, { duration: 0.8 });
+    }
+  }, 450);
+}
+
+markCleanedBtn.addEventListener('click', handleMarkCleaned);
+
+// ── Simulation Toggle (Demo Driving along Route) ──────────────
+function toggleSimulation() {
+  isSimulationActive = !isSimulationActive;
+  simDrivingBtn.classList.toggle('active', isSimulationActive);
+
+  if (isSimulationActive) {
+    showToast('⚡ Simulation active: Truck moving along route');
+    let stepIndex = 0;
+    const remainingStops = routeStops.slice(activeStopIndex);
+    if (remainingStops.length === 0) return;
+
+    simulationInterval = setInterval(() => {
+      const target = remainingStops[0];
+      if (!target) return;
+
+      // Interpolate truck position towards target stop
+      const dLat = (target.lat - currentCoords.lat) * 0.18;
+      const dLng = (target.lng - currentCoords.lng) * 0.18;
+
+      const newLat = currentCoords.lat + dLat;
+      const newLng = currentCoords.lng + dLng;
+
+      updateTruckMarkerPosition(newLat, newLng);
+
+      const remainingDistM = haversineDistance(newLat, newLng, target.lat, target.lng) * 1000;
+      if (remainingDistM < 40) {
+        showToast(`📍 Arrived at Stop #${activeStopIndex + 1}: ${target.name}`);
+      }
+    }, 1500);
+  } else {
+    clearInterval(simulationInterval);
+    simulationInterval = null;
+    showToast('Simulation stopped. GPS resumed.');
+  }
+}
+
+simDrivingBtn.addEventListener('click', toggleSimulation);
+
+// ── Recenter Button ──────────────────────────────────────────
+recenterBtn.addEventListener('click', () => {
+  if (map && currentCoords) {
+    map.flyTo([currentCoords.lat, currentCoords.lng], 16, { duration: 0.8 });
+  }
+});
+
+// ── Return to Depot Button ───────────────────────────────────
+document.getElementById('returnDepotBtn').addEventListener('click', () => {
+  showToast('Route complete! Returning to Depot.');
+  if (map) map.flyTo([28.6139, 77.2090], 14, { duration: 1 });
+});
+
+// ── Logout ───────────────────────────────────────────────────
+logoutBtn.addEventListener('click', () => logout());
+
+// ── Realtime Subscriptions (Auto-recompute route on new reports)
+function subscribeRealtimeUpdates() {
+  // Listen for newly verified reports
+  supabase.channel('driver-reports-stream')
+    .on('postgres_changes', {
+      event: 'INSERT',
+      schema: 'public',
+      table: 'reports'
+    }, payload => {
+      if (payload.new && payload.new.status === 'verified') {
+        showToast('🔔 New verified report received! Updating route…');
+        loadAndComputeRoute(true);
+      }
+    })
+    .on('postgres_changes', {
+      event: 'UPDATE',
+      schema: 'public',
+      table: 'reports'
+    }, payload => {
+      if (payload.new && payload.new.status === 'verified') {
+        showToast('🔔 Report verified! Adding to collection route…');
+        loadAndComputeRoute(true);
+      }
+    })
+    .subscribe();
+
+  // Listen for newly flagged chronic hotspots
+  supabase.channel('driver-hotspots-stream')
+    .on('postgres_changes', {
+      event: 'UPDATE',
+      schema: 'public',
+      table: 'hotspots'
+    }, payload => {
+      if (payload.new && payload.new.is_chronic) {
+        showToast('🔥 Chronic zone flagged! Prioritizing route…');
+        loadAndComputeRoute(true);
+      }
+    })
+    .subscribe();
+}
+
+// ── App Startup ──────────────────────────────────────────────
+
+// BroadcastChannel listener (cross-tab, from Admin Command Center)
+function subscribeBroadcastChannel() {
+  try {
+    const driverBc = new BroadcastChannel('ecoroute-sync');
+    driverBc.addEventListener('message', ev => {
+      const d = ev.data;
+      if (!d || !d.type) return;
+
+      if (d.type === 'CHRONIC_UPDATE') {
+        const hotspot = d.hotspot || d;
+        if (!hotspot || !hotspot.id) return;
+
+        if (hotspot.is_chronic === false) {
+          // Unmark — remove from route and reload
+          showToast('ℹ️ "' + (hotspot.name || 'Zone') + '" removed from chronic priority');
+          routeStops = routeStops.filter(s => s.id !== hotspot.id);
+          renderRoute();
+          return;
+        }
+
+        // Mark as chronic — inject into route
+        showToast('🔥 Chronic Zone: "' + (hotspot.name || 'New Zone') + '" added to your route!');
+
+        const newStop = {
+          id:           hotspot.id,
+          name:         hotspot.name || 'Chronic Zone',
+          lat:          parseFloat(hotspot.lat),
+          lng:          parseFloat(hotspot.lng),
+          is_chronic:   true,
+          report_count: hotspot.report_count || 5
+        };
+
+        // Avoid duplicates
+        if (!routeStops.some(s => s.id === newStop.id)) {
+          routeStops.splice(activeStopIndex + 1, 0, newStop);
+          renderRoute();
+        }
+
+        // Flash MARK AS CLEANED button red to alert driver
+        markCleanedBtn.style.transition = 'background 0.2s';
+        markCleanedBtn.style.background = '#dc2626';
+        markCleanedText.textContent = '🔴 NEW CHRONIC STOP ADDED';
+        setTimeout(() => {
+          markCleanedBtn.style.background = '';
+          markCleanedText.textContent = 'MARK AS CLEANED';
+        }, 3500);
+
+        // ACK back to admin so it shows "Route Updated" toast
+        try {
+          const ackBc = new BroadcastChannel('ecoroute-sync');
+          ackBc.postMessage({ type: 'CHRONIC_ACK', id: hotspot.id, name: hotspot.name });
+          ackBc.close();
+        } catch (e) {}
+
+      } else if (d.type === 'UNCHRONIC_UPDATE') {
+        showToast('ℹ️ "' + (d.name || 'Zone') + '" removed from chronic priority');
+        loadAndComputeRoute(true);
+      } else if (d.type === 'RESET_DEMO') {
+        localStorage.removeItem('ecoroute_cleaned_hotspots');
+        activeStopIndex = 0;
+        showToast('✨ Route reset to baseline');
+        loadAndComputeRoute(false);
+      } else if (d.type === 'TRUCK_MOVED' && d.lat && d.lng) {
+        currentCoords = { lat: d.lat, lng: d.lng };
+        if (truckMarker) truckMarker.setLatLng([d.lat, d.lng]);
+        updateDistanceToActiveStop();
+      }
+    });
+  } catch (e) {
+    console.warn('[driver] BroadcastChannel unavailable');
+  }
+
+  // localStorage fallback (cross-window / older browsers)
+  window.addEventListener('storage', e => {
+    if (e.key === 'ecoroute_sync_chronic' && e.newValue) {
+      try {
+        const d = JSON.parse(e.newValue);
+        if (d && d.hotspot_id && !routeStops.some(s => s.id === d.hotspot_id)) {
+          showToast('🔥 Chronic Zone added: "' + (d.name || '') + '"');
+          loadAndComputeRoute(true);
+        }
+      } catch (err) {}
+    }
+  });
+}
+
+initMap(currentCoords.lat, currentCoords.lng);
+startGpsTracking();
+await loadAndComputeRoute(false);
+subscribeRealtimeUpdates();
+subscribeBroadcastChannel();
+
+/* PWA Service Worker Registration */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(err => {
+      console.info('[PWA] Service worker registration note:', err.message);
+    });
+  });
+}
+</script>
+</body>
+</html>

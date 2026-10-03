@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>CleanGreen — Citizen Dashboard</title>
+  <meta name="description" content="Report illegal dumps, track garbage trucks, and chat with AI for waste segregation help." />
+  <link rel="stylesheet" href="css/shared.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    /* ── Mobile shell ─────────────────────── */
+    body {
+      background: #0b0f0b;
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh;
+    }
+    .phone-shell {
+      width: 390px; height: 844px;
+      background: #f0f2f0;
+      border-radius: 44px;
+      overflow: hidden;
+      position: relative;
+      box-shadow: 0 40px 100px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,.05);
+    }
+    /* Desktop: show as full screen on small windows */
+    @media (max-width: 440px) {
+      body { background: #f0f2f0; align-items: flex-start; }
+      .phone-shell { width: 100vw; height: 100vh; border-radius: 0; box-shadow: none; }
+    }
+
+    /* Status bar */
+    .status-bar {
+      height: 44px; background: #fff;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 24px;
+      font-size: 0.75rem; font-weight: 600; color: #1a1a1a;
+    }
+    .status-icons { display: flex; align-items: center; gap: 6px; }
+
+    /* Tab content wrapper */
+    .tab-content {
+      height: calc(844px - 44px - 72px);
+      overflow: hidden; position: relative;
+    }
+    .tab-panel {
+      position: absolute; inset: 0;
+      overflow-y: auto; overflow-x: hidden;
+      display: none;
+    }
+    .tab-panel.active { display: block; animation: fadeIn .2s; }
+
+    /* ── Bottom Nav ───────────────────────── */
+    .bottom-nav {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      height: 72px;
+      background: #fff;
+      border-top: 1px solid rgba(0,0,0,.08);
+      display: flex; align-items: center; justify-content: space-around;
+      padding-bottom: 8px;
+    }
+    .nav-item {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      padding: 8px 20px; border-radius: var(--radius-md);
+      cursor: pointer; transition: all var(--duration-normal);
+      user-select: none;
+    }
+    .nav-icon { font-size: 1.375rem; transition: transform var(--duration-normal) var(--ease-spring); }
+    .nav-label { font-size: 0.65rem; font-weight: 600; color: var(--gray-400); letter-spacing: 0.04em; }
+    .nav-item.active .nav-label { color: var(--green-600); }
+    .nav-item.active .nav-icon { transform: scale(1.15); }
+    .nav-item:hover .nav-icon { transform: scale(1.1); }
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       SCREEN 1: HOME
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    #map-home { height: 320px; width: 100%; z-index: 1; }
+
+    .feed-section { background: #f0f2f0; padding: 16px 16px 8px; }
+    .feed-header {
+      display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;
+    }
+    .feed-title { font-size: 1rem; font-weight: 700; color: var(--gray-900); }
+    .live-badge {
+      display: flex; align-items: center; gap: 5px;
+      background: rgba(239,68,68,.1); color: var(--red-500);
+      padding: 3px 10px; border-radius: var(--radius-full);
+      font-size: 0.65rem; font-weight: 700; letter-spacing: 0.08em;
+    }
+    .live-dot { width: 6px; height: 6px; background: var(--red-500); border-radius: 50%; animation: pulse-red 1.5s infinite; }
+
+    .feed-card {
+      background: #fff; border-radius: var(--radius-lg);
+      margin-bottom: 12px; overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      transition: transform var(--duration-normal), box-shadow var(--duration-normal);
+    }
+    .feed-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+    .feed-img {
+      width: 100%; height: 140px; object-fit: cover;
+      background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 3rem; position: relative;
+    }
+    .feed-img-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,.4));
+    }
+    .geo-tag {
+      position: absolute; bottom: 8px; left: 10px;
+      display: flex; align-items: center; gap: 4px;
+      background: rgba(0,0,0,.6); backdrop-filter: blur(6px);
+      color: #fff; font-size: 0.65rem; font-weight: 500;
+      padding: 3px 8px; border-radius: var(--radius-full);
+    }
+    .severity-tag {
+      position: absolute; top: 10px; right: 10px;
+      padding: 3px 10px; border-radius: var(--radius-full);
+      font-size: 0.65rem; font-weight: 700; letter-spacing: 0.05em;
+    }
+    .severity-high { background: rgba(239,68,68,.9); color: #fff; }
+    .severity-med  { background: rgba(245,158,11,.9); color: #fff; }
+    .severity-low  { background: rgba(34,197,94,.9); color: #fff; }
+
+    .feed-body { padding: 12px 14px; }
+    .feed-user { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+    .user-avatar {
+      width: 28px; height: 28px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 700; color: #fff;
+    }
+    .feed-username { font-size: 0.8125rem; font-weight: 600; color: var(--gray-800); }
+    .feed-time { font-size: 0.7rem; color: var(--gray-400); margin-left: auto; }
+    .feed-desc { font-size: 0.8125rem; color: var(--gray-600); line-height: 1.4; margin-bottom: 10px; }
+
+    .feed-actions { display: flex; align-items: center; gap: 10px; }
+    .upvote-btn {
+      display: flex; align-items: center; gap: 6px;
+      padding: 7px 14px; border-radius: var(--radius-full);
+      background: var(--gray-100); color: var(--gray-600);
+      font-size: 0.8rem; font-weight: 600;
+      transition: all var(--duration-normal) var(--ease-spring);
+      cursor: pointer;
+    }
+    .upvote-btn:hover { background: var(--green-100); color: var(--green-700); }
+    .upvote-btn.voted {
+      background: var(--green-500); color: #fff;
+      box-shadow: var(--shadow-green);
+    }
+    .upvote-btn .count { transition: all var(--duration-fast); }
+    .share-btn {
+      display: flex; align-items: center; gap: 6px;
+      padding: 7px 14px; border-radius: var(--radius-full);
+      background: var(--gray-100); color: var(--gray-500);
+      font-size: 0.8rem; font-weight: 600;
+      transition: background var(--duration-fast);
+    }
+    .share-btn:hover { background: var(--gray-200); }
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       SCREEN 2: REPORT
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    #panel-report {
+      background: var(--gray-900);
+    }
+    .report-header {
+      padding: 20px 20px 0;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .report-title { font-size: 1.25rem; font-weight: 800; color: #fff; }
+    .report-sub { font-size: 0.8125rem; color: var(--gray-400); padding: 4px 20px 16px; }
+
+    /* Camera UI */
+    .camera-view {
+      margin: 0 16px 16px;
+      height: 260px; border-radius: var(--radius-xl);
+      background: var(--gray-800);
+      border: 2px dashed rgba(255,255,255,.12);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 12px;
+      cursor: pointer; position: relative; overflow: hidden;
+      transition: border-color var(--duration-normal), background var(--duration-normal);
+    }
+    .camera-view:hover { border-color: rgba(34,197,94,.4); background: rgba(34,197,94,.05); }
+    .camera-view.has-image { border-style: solid; border-color: var(--green-500); }
+    .camera-icon { font-size: 3rem; opacity: 0.6; }
+    .camera-text { color: var(--gray-400); font-size: 0.875rem; font-weight: 500; }
+    .camera-subtext { color: var(--gray-600); font-size: 0.75rem; }
+    .preview-img {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      object-fit: cover; display: none;
+    }
+    .preview-img.show { display: block; }
+    .remove-img {
+      position: absolute; top: 10px; right: 10px;
+      background: rgba(0,0,0,.7); color: #fff;
+      width: 28px; height: 28px; border-radius: 50%;
+      font-size: 1rem; display: none; align-items: center; justify-content: center;
+      cursor: pointer;
+    }
+    .remove-img.show { display: flex; }
+
+    /* GPS bar */
+    .gps-bar {
+      margin: 0 16px 12px;
+      background: rgba(34,197,94,.08);
+      border: 1px solid rgba(34,197,94,.2);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .gps-icon { font-size: 1.25rem; }
+    .gps-info { flex: 1; }
+    .gps-label { font-size: 0.7rem; font-weight: 600; color: var(--green-400); text-transform: uppercase; letter-spacing: 0.08em; }
+    .gps-coords { font-size: 0.8125rem; color: rgba(255,255,255,.7); font-family: var(--font-mono); margin-top: 2px; }
+    .gps-status { width: 8px; height: 8px; border-radius: 50%; background: var(--green-400); animation: pulse-green 2s infinite; }
+
+    /* Severity selector */
+    .report-section { padding: 0 16px 12px; }
+    .report-label { font-size: 0.75rem; font-weight: 600; color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+    .severity-btns { display: flex; gap: 8px; }
+    .sev-btn {
+      flex: 1; padding: 10px 8px; border-radius: var(--radius-md);
+      font-size: 0.8125rem; font-weight: 600; color: rgba(255,255,255,.5);
+      background: rgba(255,255,255,.05); border: 1.5px solid rgba(255,255,255,.08);
+      cursor: pointer; transition: all var(--duration-normal); text-align: center;
+    }
+    .sev-btn:hover { background: rgba(255,255,255,.08); }
+    .sev-btn.active-low  { background: rgba(34,197,94,.15); border-color: var(--green-500); color: var(--green-400); }
+    .sev-btn.active-med  { background: rgba(245,158,11,.15); border-color: var(--amber-500); color: var(--amber-400); }
+    .sev-btn.active-high { background: rgba(239,68,68,.15); border-color: var(--red-500); color: var(--red-400); }
+
+    .report-textarea {
+      width: 100%; padding: 12px 14px;
+      background: rgba(255,255,255,.05);
+      border: 1.5px solid rgba(255,255,255,.08);
+      border-radius: var(--radius-md);
+      color: rgba(255,255,255,.8); font-size: 0.875rem;
+      resize: none; outline: none; height: 80px;
+      transition: border-color var(--duration-normal);
+    }
+    .report-textarea::placeholder { color: rgba(255,255,255,.2); }
+    .report-textarea:focus { border-color: rgba(34,197,94,.4); }
+
+    /* Submit button */
+    .submit-btn {
+      margin: 0 16px; width: calc(100% - 32px);
+      padding: 16px;
+      background: linear-gradient(135deg, var(--green-500), var(--emerald-600));
+      color: #fff; font-size: 1rem; font-weight: 700;
+      border-radius: var(--radius-md);
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      box-shadow: 0 6px 20px rgba(34,197,94,.35);
+      transition: all var(--duration-normal) var(--ease-out);
+    }
+    .submit-btn:hover { transform: translateY(-1px); box-shadow: 0 10px 28px rgba(34,197,94,.45); }
+    .submit-btn:active { transform: scale(.98); }
+
+    /* Success overlay */
+    .submit-success {
+      position: absolute; inset: 0;
+      background: var(--gray-900);
+      display: none; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
+      animation: fadeIn .3s;
+      z-index: 20;
+    }
+    .submit-success.show { display: flex; }
+    .success-circle {
+      width: 80px; height: 80px; border-radius: 50%;
+      background: rgba(34,197,94,.15); border: 2px solid var(--green-500);
+      display: flex; align-items: center; justify-content: center; font-size: 2.5rem;
+      animation: pulse-green 2s infinite;
+    }
+    .success-title { font-size: 1.25rem; font-weight: 800; color: #fff; }
+    .success-sub { font-size: 0.875rem; color: var(--gray-400); text-align: center; padding: 0 32px; line-height: 1.5; }
+    .success-sub span { color: var(--red-400); font-weight: 600; }
+    .success-back {
+      margin-top: 8px; padding: 12px 32px;
+      background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12);
+      border-radius: var(--radius-md); color: #fff; font-weight: 600; font-size: 0.875rem;
+    }
+    .success-back:hover { background: rgba(255,255,255,.12); }
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       SCREEN 3: CHAT
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    #panel-chat { background: #ece5dd; display: flex; flex-direction: column; height: 100%; }
+    .chat-topbar {
+      background: #1a6e37; padding: 12px 16px;
+      display: flex; align-items: center; gap: 12px; flex-shrink: 0;
+    }
+    .chat-avatar {
+      width: 40px; height: 40px; border-radius: 50%;
+      background: rgba(255,255,255,.2);
+      display: flex; align-items: center; justify-content: center; font-size: 1.25rem;
+    }
+    .chat-bot-info {}
+    .chat-bot-name { font-size: 0.9375rem; font-weight: 700; color: #fff; }
+    .chat-bot-status { font-size: 0.75rem; color: rgba(255,255,255,.7); display: flex; align-items: center; gap: 4px; }
+    .online-dot { width: 6px; height: 6px; border-radius: 50%; background: #4ade80; }
+
+    .chat-messages {
+      flex: 1; overflow-y: auto; padding: 16px 12px;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+
+    .msg-row { display: flex; gap: 8px; }
+    .msg-row.user { flex-direction: row-reverse; }
+    .msg-bot-avatar {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: #25d366; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: 0.875rem;
+      align-self: flex-end;
+    }
+    .bubble {
+      max-width: 75%; padding: 10px 14px;
+      border-radius: 16px; font-size: 0.875rem; line-height: 1.5;
+      box-shadow: 0 1px 2px rgba(0,0,0,.12);
+      animation: slideUp .2s var(--ease-out);
+    }
+    .bubble.bot { background: #fff; color: var(--gray-800); border-bottom-left-radius: 4px; }
+    .bubble.user { background: #dcf8c6; color: var(--gray-800); border-bottom-right-radius: 4px; }
+    .bubble-time { font-size: 0.65rem; color: rgba(0,0,0,.35); margin-top: 4px; text-align: right; }
+
+    /* Bin card inside bubble */
+    .bin-card {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--gray-50); border-radius: 10px; padding: 10px 12px; margin-top: 8px;
+      border-left: 4px solid;
+    }
+    .bin-icon { font-size: 1.5rem; }
+    .bin-name { font-size: 0.8125rem; font-weight: 700; }
+    .bin-desc { font-size: 0.75rem; color: var(--gray-500); }
+
+    /* Suggestion chips */
+    .suggestion-chips {
+      display: flex; gap: 8px; flex-wrap: wrap;
+      padding: 0 12px 8px;
+    }
+    .sugg-chip {
+      padding: 6px 14px; border-radius: var(--radius-full);
+      background: #fff; border: 1px solid rgba(0,0,0,.1);
+      font-size: 0.75rem; color: var(--gray-700); cursor: pointer;
+      transition: all var(--duration-fast);
+    }
+    .sugg-chip:hover { background: #f0fff4; border-color: var(--green-400); color: var(--green-700); }
+
+    /* Chat input */
+    .chat-inputbar {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 12px; background: #f0f2f0; flex-shrink: 0;
+    }
+    .chat-input-wrap {
+      flex: 1; display: flex; align-items: center;
+      background: #fff; border-radius: 24px; padding: 8px 16px;
+      box-shadow: var(--shadow-sm);
+    }
+    .chat-input {
+      flex: 1; border: none; outline: none; background: transparent;
+      font-size: 0.9375rem; color: var(--gray-800);
+    }
+    .chat-input::placeholder { color: var(--gray-400); }
+    .chat-send {
+      width: 44px; height: 44px; border-radius: 50%;
+      background: #25d366; color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.125rem; flex-shrink: 0;
+      transition: all var(--duration-normal) var(--ease-spring);
+    }
+    .chat-send:hover { transform: scale(1.08); background: #20bf5c; }
+
+    /* Typing indicator */
+    .typing-indicator { display: none; }
+    .typing-indicator.show { display: flex; gap: 8px; align-items: center; }
+    .typing-dots { display: flex; gap: 4px; padding: 12px 16px; background: #fff; border-radius: 16px; border-bottom-left-radius: 4px; }
+    .typing-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--gray-400); animation: typingBounce 1.2s infinite; }
+    .typing-dot:nth-child(2) { animation-delay: .2s; }
+    .typing-dot:nth-child(3) { animation-delay: .4s; }
+    @keyframes typingBounce {
+      0%, 60%, 100% { transform: translateY(0); }
+      30% { transform: translateY(-6px); }
+    }
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       SCREEN 4: PROFILE
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    #panel-profile {
+      background: linear-gradient(180deg, #0d2a1a 0%, #f0f2f0 220px);
+    }
+    .profile-hero {
+      padding: 24px 20px 60px;
+      display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center;
+    }
+    .profile-avatar-ring {
+      width: 72px; height: 72px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--green-400), var(--emerald-500));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2rem; font-weight: 700; color: #fff;
+      box-shadow: 0 0 0 4px rgba(34,197,94,.25);
+    }
+    .profile-name { font-size: 1.25rem; font-weight: 800; color: #fff; }
+    .profile-since { font-size: 0.8125rem; color: rgba(255,255,255,.5); }
+
+    /* Score card */
+    .score-card {
+      margin: -40px 16px 0; position: relative; z-index: 2;
+      background: #fff; border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-lg);
+      padding: 24px;
+    }
+    .score-title { font-size: 0.8125rem; font-weight: 600; color: var(--gray-500); text-align: center; margin-bottom: 20px; letter-spacing: 0.06em; text-transform: uppercase; }
+
+    /* Circular meter */
+    .score-meter { position: relative; width: 160px; margin: 0 auto 20px; }
+    .score-svg { width: 160px; height: 160px; transform: rotate(-90deg); }
+    .score-track { fill: none; stroke: var(--gray-100); stroke-width: 12; }
+    .score-fill {
+      fill: none; stroke: url(#scoreGrad); stroke-width: 12;
+      stroke-linecap: round;
+      stroke-dasharray: 408;
+      stroke-dashoffset: 408;
+      transition: stroke-dashoffset 1.5s var(--ease-out);
+    }
+    .score-center {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+    }
+    .score-number { font-size: 2.25rem; font-weight: 900; color: var(--gray-900); line-height: 1; }
+    .score-max { font-size: 0.75rem; color: var(--gray-400); font-weight: 500; }
+    .score-grade {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 4px 14px; border-radius: var(--radius-full);
+      background: var(--green-100); color: var(--green-700);
+      font-size: 0.8125rem; font-weight: 700; margin-top: 8px;
+    }
+
+    /* Stats row */
+    .stats-row {
+      display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-top: 16px;
+    }
+    .stat-box {
+      background: var(--gray-50); border-radius: var(--radius-md); padding: 12px 8px; text-align: center;
+    }
+    .stat-num { font-size: 1.375rem; font-weight: 800; color: var(--gray-900); }
+    .stat-label { font-size: 0.7rem; color: var(--gray-500); font-weight: 500; margin-top: 2px; }
+
+    /* Info cards */
+    .info-cards { padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+    .info-card {
+      background: #fff; border-radius: var(--radius-lg); padding: 16px;
+      box-shadow: var(--shadow-sm);
+      display: flex; align-items: flex-start; gap: 12px;
+    }
+    .info-card-icon {
+      width: 40px; height: 40px; border-radius: var(--radius-md);
+      display: flex; align-items: center; justify-content: center; font-size: 1.25rem;
+      flex-shrink: 0;
+    }
+    .info-card-text {}
+    .info-card-title { font-size: 0.875rem; font-weight: 700; color: var(--gray-800); margin-bottom: 4px; }
+    .info-card-desc { font-size: 0.8rem; color: var(--gray-500); line-height: 1.5; }
+
+    /* Progress bar */
+    .progress-bar-wrap { margin-top: 10px; }
+    .progress-label { display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--gray-500); margin-bottom: 4px; }
+    .progress-track { height: 6px; background: var(--gray-100); border-radius: 3px; overflow: hidden; }
+    .progress-fill { height: 100%; border-radius: 3px; transition: width 1s var(--ease-out); }
+  </style>
+</head>
+<body>
+<div class="phone-shell">
+
+  <!-- Status bar -->
+  <div class="status-bar">
+    <span>9:41</span>
+    <div class="status-icons">
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor"><rect x="0" y="4" width="3" height="8" rx="1"/><rect x="4" y="2" width="3" height="10" rx="1"/><rect x="8" y="0" width="3" height="12" rx="1"/><rect x="12" y="0" width="3" height="12" rx="1" opacity=".3"/></svg>
+      <svg width="16" height="12" viewBox="0 0 22 16" fill="currentColor"><path d="M11 3.5C8.5 3.5 6.3 4.5 4.7 6.2L3.3 4.8C5.3 2.8 8 1.5 11 1.5s5.7 1.3 7.7 3.3l-1.4 1.4C15.7 4.5 13.5 3.5 11 3.5z"/><path d="M11 7.5c-1.4 0-2.7.6-3.6 1.5L6 7.6C7.3 6.3 9.1 5.5 11 5.5s3.7.8 5 2.1l-1.4 1.4C13.7 8.1 12.4 7.5 11 7.5z" opacity=".7"/><circle cx="11" cy="13" r="2"/></svg>
+      🔋
+    </div>
+  </div>
+
+  <!-- Tab panels -->
+  <div class="tab-content">
+
+    <!-- PANEL 1: HOME -->
+    <div class="tab-panel active" id="panel-home">
+      <div id="map-home"></div>
+      <div class="feed-section">
+        <div class="feed-header">
+          <div class="feed-title">Community Reports</div>
+          <div class="live-badge"><div class="live-dot"></div>LIVE</div>
+        </div>
+
+        <!-- Feed cards -->
+        <div id="feed-list"></div>
+      </div>
+    </div>
+
+    <!-- PANEL 2: REPORT -->
+    <div class="tab-panel" id="panel-report">
+      <div class="report-header">
+        <span style="font-size:1.5rem;">📸</span>
+        <div class="report-title">Report a Dump</div>
+      </div>
+      <div class="report-sub">Photo evidence helps authorities act faster</div>
+
+      <!-- Camera view -->
+      <div class="camera-view" id="cameraView" onclick="triggerUpload()">
+        <img class="preview-img" id="previewImg" src="" alt="" />
+        <div class="remove-img" id="removeBtn" onclick="removeImage(event)">✕</div>
+        <div id="cameraPlaceholder">
+          <div class="camera-icon" style="text-align:center">📷</div>
+          <div class="camera-text">Tap to capture or upload</div>
+          <div class="camera-subtext">Supports JPG, PNG, HEIC</div>
+        </div>
+      </div>
+      <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="handleFile(event)" />
+
+      <!-- GPS -->
+      <div class="gps-bar">
+        <div class="gps-icon">📍</div>
+        <div class="gps-info">
+          <div class="gps-label">GPS Location Captured</div>
+          <div class="gps-coords" id="gpsCoords">Acquiring signal...</div>
+        </div>
+        <div class="gps-status" id="gpsStatus"></div>
+      </div>
+
+      <!-- Severity -->
+      <div class="report-section">
+        <div class="report-label">Severity</div>
+        <div class="severity-btns">
+          <button class="sev-btn" onclick="setSev(this,'low','active-low')">🟢 Low</button>
+          <button class="sev-btn" onclick="setSev(this,'med','active-med')">🟡 Medium</button>
+          <button class="sev-btn active-high" onclick="setSev(this,'high','active-high')" id="sevHigh">🔴 High</button>
+        </div>
+      </div>
+
+      <!-- Description -->
+      <div class="report-section">
+        <div class="report-label">Description</div>
+        <textarea class="report-textarea" placeholder="Describe the dump site (optional)..." id="reportDesc"></textarea>
+      </div>
+
+      <button class="submit-btn" onclick="submitReport()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+        Submit Report
+      </button>
+
+      <!-- Success overlay -->
+      <div class="submit-success" id="submitSuccess">
+        <div class="success-circle">✅</div>
+        <div class="success-title">Report Submitted!</div>
+        <div class="success-sub">A <span>🔴 red pin</span> has been pushed to the Org Admin's live command map. Drivers will be notified on their route.</div>
+        <button class="success-back" onclick="closeSuccess()">← Back to Home</button>
+      </div>
+    </div>
+
+    <!-- PANEL 3: CHAT -->
+    <div class="tab-panel" id="panel-chat">
+      <div class="chat-topbar">
+        <div class="chat-avatar">🤖</div>
+        <div class="chat-bot-info">
+          <div class="chat-bot-name">GreenAI Assistant</div>
+          <div class="chat-bot-status"><div class="online-dot"></div>Online · Waste Segregation Expert</div>
+        </div>
+      </div>
+      <div class="chat-messages" id="chatMessages">
+        <!-- Seeded by JS -->
+      </div>
+      <div class="suggestion-chips" id="suggChips">
+        <div class="sugg-chip" onclick="sendSugg(this)">🍾 Glass bottle</div>
+        <div class="sugg-chip" onclick="sendSugg(this)">🔋 Old battery</div>
+        <div class="sugg-chip" onclick="sendSugg(this)">💊 Medicine</div>
+        <div class="sugg-chip" onclick="sendSugg(this)">📱 Old phone</div>
+        <div class="sugg-chip" onclick="sendSugg(this)">🧴 Plastic bottle</div>
+        <div class="sugg-chip" onclick="sendSugg(this)">🍌 Food waste</div>
+      </div>
+      <div class="chat-inputbar">
+        <div class="chat-input-wrap">
+          <input class="chat-input" id="chatInput" placeholder="Ask about any waste item..." />
+        </div>
+        <button class="chat-send" onclick="sendMessage()">➤</button>
+      </div>
+    </div>
+
+    <!-- PANEL 4: PROFILE -->
+    <div class="tab-panel" id="panel-profile">
+      <div class="profile-hero">
+        <div class="profile-avatar-ring">A</div>
+        <div class="profile-name">Arjun Sharma</div>
+        <div class="profile-since">Member since January 2026 · Ward 14, Delhi</div>
+      </div>
+
+      <!-- Score card -->
+      <div class="score-card">
+        <div class="score-title">Citizen Trust Score</div>
+        <div class="score-meter">
+          <svg class="score-svg" viewBox="0 0 160 160">
+            <defs>
+              <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color:#22c55e"/>
+                <stop offset="100%" style="stop-color:#10b981"/>
+              </linearGradient>
+            </defs>
+            <circle class="score-track" cx="80" cy="80" r="65"/>
+            <circle class="score-fill" id="scoreFill" cx="80" cy="80" r="65"/>
+          </svg>
+          <div class="score-center">
+            <div class="score-number" id="scoreNum">0</div>
+            <div class="score-max">/ 100</div>
+            <div class="score-grade">⭐ Trusted</div>
+          </div>
+        </div>
+        <div class="stats-row">
+          <div class="stat-box">
+            <div class="stat-num" style="color:var(--blue-500)">23</div>
+            <div class="stat-label">Reports Filed</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-num" style="color:var(--green-600)">18</div>
+            <div class="stat-label">Verified ✓</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-num" style="color:var(--amber-500)">147</div>
+            <div class="stat-label">Upvotes Got</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Info cards -->
+      <div class="info-cards">
+        <div class="info-card">
+          <div class="info-card-icon" style="background:rgba(34,197,94,.1)">🎯</div>
+          <div class="info-card-text">
+            <div class="info-card-title">How Trust Score Works</div>
+            <div class="info-card-desc">Your score increases when neighbors upvote your reports and when a driver marks your flagged dump as cleaned.</div>
+            <div class="progress-bar-wrap">
+              <div class="progress-label"><span>To Elite (Score 85+)</span><span>78/85</span></div>
+              <div class="progress-track"><div class="progress-fill" id="progressToElite" style="width:0%;background:linear-gradient(90deg,var(--green-400),var(--emerald-500))"></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="info-card">
+          <div class="info-card-icon" style="background:rgba(245,158,11,.1)">⚡</div>
+          <div class="info-card-text">
+            <div class="info-card-title">Fast-Track Privilege</div>
+            <div class="info-card-desc">Score ≥ 85 → Your future reports bypass community verification and go <strong>straight to drivers</strong>. You're almost there!</div>
+          </div>
+        </div>
+        <div class="info-card">
+          <div class="info-card-icon" style="background:rgba(59,130,246,.1)">🏅</div>
+          <div class="info-card-text">
+            <div class="info-card-title">Badges Earned</div>
+            <div class="info-card-desc" style="font-size:1.25rem;letter-spacing:.15em">🌱 🔍 🏆 🌊</div>
+          </div>
+        </div>
+        <div style="height:16px"></div>
+      </div>
+    </div>
+
+  </div><!-- /tab-content -->
+
+  <!-- Bottom Nav -->
+  <div class="bottom-nav">
+    <div class="nav-item active" id="nav-home" onclick="switchTab('home')">
+      <div class="nav-icon">🏠</div>
+      <div class="nav-label">Home</div>
+    </div>
+    <div class="nav-item" id="nav-report" onclick="switchTab('report')">
+      <div class="nav-icon">📸</div>
+      <div class="nav-label">Report</div>
+    </div>
+    <div class="nav-item" id="nav-chat" onclick="switchTab('chat')">
+      <div class="nav-icon">💬</div>
+      <div class="nav-label">Chat</div>
+    </div>
+    <div class="nav-item" id="nav-profile" onclick="switchTab('profile')">
+      <div class="nav-icon">👤</div>
+      <div class="nav-label">Profile</div>
+    </div>
+  </div>
+
+</div><!-- /phone-shell -->
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+/* ── Tab switching ─────────────────────────── */
+function switchTab(tab) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('panel-' + tab).classList.add('active');
+  document.getElementById('nav-' + tab).classList.add('active');
+  if (tab === 'profile') animateScore();
+  if (tab === 'home' && !mapInitialized) initMap();
+}
+
+/* ── Map ──────────────────────────────────── */
+let mapInitialized = false;
+let truckMarker;
+
+function initMap() {
+  mapInitialized = true;
+  const map = L.map('map-home', { zoomControl: false, attributionControl: false })
+    .setView([28.6358, 77.2245], 15);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+  // User marker
+  const userIcon = L.divIcon({
+    html: `<div style="width:16px;height:16px;background:#3b82f6;border:3px solid #fff;border-radius:50%;box-shadow:0 0 0 6px rgba(59,130,246,.25),0 2px 8px rgba(0,0,0,.3)"></div>`,
+    className: '', iconAnchor: [8,8]
+  });
+  L.marker([28.6358, 77.2245], { icon: userIcon }).addTo(map).bindPopup('<b>📍 You are here</b>');
+
+  // Dump pins
+  const dumps = [
+    { lat:28.638, lng:77.226, label:'Sector 4 Pole — Chronic Zone', severity:'red' },
+    { lat:28.633, lng:77.222, label:'Lajpat Nagar Market', severity:'red' },
+    { lat:28.640, lng:77.220, label:'Near School Gate', severity:'orange' },
+  ];
+  dumps.forEach(d => {
+    const pin = L.divIcon({
+      html: `<div style="width:20px;height:20px;background:${d.severity};border:2.5px solid #fff;border-radius:50%;animation:pulse-red 2s infinite;box-shadow:0 2px 8px rgba(0,0,0,.4)"></div>`,
+      className: '', iconAnchor:[10,10]
+    });
+    L.marker([d.lat, d.lng], { icon: pin }).addTo(map)
+      .bindPopup(`<b>🚨 ${d.label}</b><br><small>Click to verify</small>`);
+  });
+
+  // Truck marker
+  const truckIcon = L.divIcon({
+    html: `<div style="background:#1a6e37;border:2px solid #fff;border-radius:8px;padding:4px 6px;font-size:1rem;box-shadow:0 2px 8px rgba(0,0,0,.4);white-space:nowrap">🚛</div>`,
+    className: '', iconAnchor: [20,20]
+  });
+  truckMarker = L.marker([28.634, 77.228], { icon: truckIcon }).addTo(map)
+    .bindPopup('<b>🚛 Truck GJ-01-TC-4521</b><br><small>En route to next stop</small>');
+
+  // Animate truck
+  let step = 0;
+  const path = [
+    [28.634, 77.228],[28.635, 77.225],[28.637, 77.223],[28.638, 77.225],[28.636, 77.227],[28.634, 77.228]
+  ];
+  setInterval(() => {
+    step = (step + 1) % path.length;
+    truckMarker.setLatLng(path[step]);
+  }, 2000);
+
+  // Geolocation
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(pos => {
+      map.setView([pos.coords.latitude, pos.coords.longitude], 15);
+    });
+  }
+}
+
+// Init map on load
+setTimeout(initMap, 300);
+
+/* ── Feed ────────────────────────────────── */
+const FEED_ITEMS = [
+  { emoji:'🗑️', color:'#f87171', user:'Priya K.', avatar:'#3b82f6', time:'2m ago', desc:'Large illegal dump near Lajpat Nagar market post. Bags overflowing onto road.', location:'Lajpat Nagar, Delhi', severity:'High', votes:14 },
+  { emoji:'🛢️', color:'#fbbf24', user:'Rahul M.', avatar:'#8b5cf6', time:'18m ago', desc:'Old construction debris dumped overnight near Sector 4 street pole.', location:'Sector 4, Delhi', severity:'Medium', votes:7 },
+  { emoji:'🍃', color:'#4ade80', user:'Anita S.', avatar:'#ec4899', time:'1h ago', desc:'Small pile of garden waste near gate. Needs pickup before it spreads.', location:'Near School, Delhi', severity:'Low', votes:3 },
+];
+
+function buildFeed() {
+  const list = document.getElementById('feed-list');
+  list.innerHTML = '';
+  FEED_ITEMS.forEach((item, i) => {
+    const sevClass = item.severity === 'High' ? 'severity-high' : item.severity === 'Medium' ? 'severity-med' : 'severity-low';
+    const div = document.createElement('div');
+    div.className = 'feed-card';
+    div.innerHTML = `
+      <div class="feed-img" style="background:linear-gradient(135deg,#e8f5e9,#c8e6c9)">
+        <span style="font-size:3.5rem">${item.emoji}</span>
+        <div class="feed-img-overlay"></div>
+        <div class="geo-tag">📍 ${item.location}</div>
+        <div class="severity-tag ${sevClass}">${item.severity}</div>
+      </div>
+      <div class="feed-body">
+        <div class="feed-user">
+          <div class="user-avatar" style="background:${item.avatar}">${item.user[0]}</div>
+          <div class="feed-username">${item.user}</div>
+          <div class="feed-time">${item.time}</div>
+        </div>
+        <div class="feed-desc">${item.desc}</div>
+        <div class="feed-actions">
+          <button class="upvote-btn" id="upvote-${i}" onclick="upvote(${i},this)">
+            👍 <span class="count">${item.votes} Verified</span>
+          </button>
+          <button class="share-btn">🔗 Share</button>
+        </div>
+      </div>
+    `;
+    list.appendChild(div);
+  });
+}
+
+const voted = new Set();
+function upvote(idx, btn) {
+  if (voted.has(idx)) return;
+  voted.add(idx);
+  FEED_ITEMS[idx].votes++;
+  btn.classList.add('voted');
+  btn.querySelector('.count').textContent = `${FEED_ITEMS[idx].votes} Verified`;
+  btn.innerHTML = `✅ <span class="count">${FEED_ITEMS[idx].votes} Verified</span>`;
+}
+
+buildFeed();
+
+/* ── Report screen ───────────────────────── */
+let currentSev = 'high';
+function setSev(btn, sev, cls) {
+  document.querySelectorAll('.sev-btn').forEach(b => b.className = 'sev-btn');
+  btn.classList.add(cls);
+  currentSev = sev;
+}
+
+function triggerUpload() {
+  if (!document.getElementById('previewImg').classList.contains('show'))
+    document.getElementById('fileInput').click();
+}
+
+function handleFile(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const img = document.getElementById('previewImg');
+    img.src = ev.target.result;
+    img.classList.add('show');
+    document.getElementById('cameraPlaceholder').style.display = 'none';
+    document.getElementById('removeBtn').classList.add('show');
+    document.getElementById('cameraView').classList.add('has-image');
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeImage(e) {
+  e.stopPropagation();
+  document.getElementById('previewImg').classList.remove('show');
+  document.getElementById('previewImg').src = '';
+  document.getElementById('cameraPlaceholder').style.display = '';
+  document.getElementById('removeBtn').classList.remove('show');
+  document.getElementById('cameraView').classList.remove('has-image');
+  document.getElementById('fileInput').value = '';
+}
+
+// GPS
+if (navigator.geolocation) {
+  navigator.geolocation.getCurrentPosition(pos => {
+    document.getElementById('gpsCoords').textContent =
+      `${pos.coords.latitude.toFixed(5)}° N, ${pos.coords.longitude.toFixed(5)}° E`;
+  }, () => {
+    document.getElementById('gpsCoords').textContent = '28.63580° N, 77.22450° E (Demo)';
+  });
+} else {
+  document.getElementById('gpsCoords').textContent = '28.63580° N, 77.22450° E (Demo)';
+}
+
+function submitReport() {
+  document.getElementById('submitSuccess').classList.add('show');
+}
+function closeSuccess() {
+  document.getElementById('submitSuccess').classList.remove('show');
+  switchTab('home');
+  // Add a new "just submitted" feed item
+  FEED_ITEMS.unshift({ emoji:'📌', color:'#f87171', user:'You', avatar:'#22c55e', time:'just now', desc:document.getElementById('reportDesc').value || 'New illegal dump reported near my location.', location:'Current Location', severity:'High', votes:0 });
+  buildFeed();
+  document.getElementById('reportDesc').value = '';
+}
+
+/* ── AI Chatbot ──────────────────────────── */
+const BIN_DATA = {
+  'glass bottle': { bin:'Blue Bin', color:'#3b82f6', icon:'🔵', tip:'Rinse before disposal. Remove caps (they go in dry waste). Broken glass: wrap in newspaper.', emoji:'🍶' },
+  'broken glass': { bin:'Blue Bin (Special)', color:'#8b5cf6', icon:'⚠️', tip:'Broken glass is hazardous. Wrap tightly in old newspaper, label "BROKEN GLASS", then place in Blue Bin.', emoji:'🔴' },
+  'battery': { bin:'Red Bin (Hazardous)', color:'#ef4444', icon:'🔴', tip:'Never mix with regular waste! Take to nearest e-waste collection point. Most electronics shops accept old batteries.', emoji:'🔋' },
+  'old battery': { bin:'Red Bin (Hazardous)', color:'#ef4444', icon:'🔴', tip:'Never mix with regular waste! Take to nearest e-waste collection point. Most electronics shops accept old batteries.', emoji:'🔋' },
+  'medicine': { bin:'Red Bin (Hazardous)', color:'#ef4444', icon:'🔴', tip:'Never flush medicines! Drop them at your nearest pharmacy or government hospital\'s medicine return point.', emoji:'💊' },
+  'old phone': { bin:'E-Waste Collection', color:'#6366f1', icon:'♻️', tip:'Take to authorized e-waste centers. Many brands (Samsung, Apple) have free take-back programs.', emoji:'📱' },
+  'plastic bottle': { bin:'Blue Bin (Dry Waste)', color:'#3b82f6', icon:'🔵', tip:'Rinse, crush, and cap it. PET plastic bottles are highly recyclable. Remove labels if possible.', emoji:'🧴' },
+  'food waste': { bin:'Green Bin (Wet Waste)', color:'#22c55e', icon:'🟢', tip:'Vegetable peels, cooked food, fruit scraps — all go in the Green Bin. Great for composting!', emoji:'🥬' },
+  'banana': { bin:'Green Bin (Wet Waste)', color:'#22c55e', icon:'🟢', tip:'Banana peels are excellent compost material. Goes in the Green Bin.', emoji:'🍌' },
+  'paper': { bin:'Blue Bin (Dry Waste)', color:'#3b82f6', icon:'🔵', tip:'Keep paper dry. Shred confidential documents first. Pizza boxes with grease go in Green Bin instead.', emoji:'📄' },
+  'cloth': { bin:'Blue Bin (Dry Waste)', color:'#3b82f6', icon:'🔵', tip:'Old clothes in good condition can be donated! Otherwise, Blue Bin for dry waste recycling.', emoji:'👕' },
+};
+
+const CHAT_WELCOME = [
+  { role:'bot', text:"Hello! 👋 I'm GreenAI, your personal waste segregation assistant.\n\nAsk me where to dispose of any item — I'll tell you the correct bin color and guidelines!" }
+];
+
+let chatHistory = [...CHAT_WELCOME];
+
+function renderMessages() {
+  const container = document.getElementById('chatMessages');
+  container.innerHTML = '';
+  chatHistory.forEach(msg => {
+    const row = document.createElement('div');
+    row.className = `msg-row ${msg.role}`;
+    const now = new Date();
+    const time = now.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
+
+    if (msg.role === 'bot') {
+      row.innerHTML = `
+        <div class="msg-bot-avatar">🌿</div>
+        <div>
+          <div class="bubble bot">${msg.html || msg.text.replace(/\n/g,'<br>')}
+            <div class="bubble-time">${time}</div>
+          </div>
+        </div>`;
+    } else {
+      row.innerHTML = `<div class="bubble user">${msg.text}<div class="bubble-time">✓✓ ${time}</div></div>`;
+    }
+    container.appendChild(row);
+  });
+
+  // Typing indicator
+  if (isTyping) {
+    const t = document.createElement('div');
+    t.className = 'msg-row typing-indicator show';
+    t.innerHTML = `<div class="msg-bot-avatar">🌿</div><div class="typing-dots"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>`;
+    container.appendChild(t);
+  }
+
+  container.scrollTop = container.scrollHeight;
+}
+
+let isTyping = false;
+
+function getAIResponse(text) {
+  const lower = text.toLowerCase();
+  for (const [key, data] of Object.entries(BIN_DATA)) {
+    if (lower.includes(key)) {
+      return {
+        text: `I found the right bin for that! Here's what you should know:`,
+        html: `I found the right bin for that! Here's what you should know:
+          <div class="bin-card" style="border-color:${data.color}">
+            <div class="bin-icon">${data.emoji}</div>
+            <div>
+              <div class="bin-name" style="color:${data.color}">${data.icon} ${data.bin}</div>
+              <div class="bin-desc">${data.tip}</div>
+            </div>
+          </div>`
+      };
+    }
+  }
+  // Fallback
+  return {
+    text: `I'm not sure about that specific item. Could you describe it more? For example: is it wet/dry, electronic, or hazardous?\n\nGeneral rule:\n🟢 Green Bin → Wet/organic waste\n🔵 Blue Bin → Dry/recyclable waste\n🔴 Red Bin → Hazardous waste`,
+    html: null
+  };
+}
+
+async function sendMessage() {
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+
+  chatHistory.push({ role:'user', text });
+  isTyping = true;
+  renderMessages();
+
+  await new Promise(r => setTimeout(r, 1200));
+
+  isTyping = false;
+  const resp = getAIResponse(text);
+  chatHistory.push({ role:'bot', ...resp });
+  renderMessages();
+}
+
+function sendSugg(chip) {
+  document.getElementById('chatInput').value = `Where do I dispose of a ${chip.textContent.trim().replace(/^[^ ]+ /,'')}?`;
+  sendMessage();
+}
+
+document.getElementById('chatInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') sendMessage();
+});
+
+renderMessages();
+
+/* ── Profile / Score animation ─────────────── */
+let scoreAnimated = false;
+function animateScore() {
+  if (scoreAnimated) return;
+  scoreAnimated = true;
+  const target = 78;
+  const circumference = 408;
+  const fill = document.getElementById('scoreFill');
+  const numEl = document.getElementById('scoreNum');
+  const offset = circumference - (target / 100) * circumference;
+
+  requestAnimationFrame(() => {
+    fill.style.strokeDashoffset = offset;
+  });
+
+  // Count-up
+  let current = 0;
+  const interval = setInterval(() => {
+    current += 2;
+    if (current >= target) { current = target; clearInterval(interval); }
+    numEl.textContent = current;
+  }, 30);
+
+  // Progress bar
+  setTimeout(() => {
+    document.getElementById('progressToElite').style.width = `${(78/85)*100}%`;
+  }, 200);
+}
+</script>
+</body>
+</html>

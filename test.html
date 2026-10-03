@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CleanGreen — Auth Test</title>
+  <meta name="description" content="Shared-layer smoke test: login, role detection, utils." />
+  <link rel="stylesheet" href="shared/theme.css" />
+  <style>
+    /* ── Test page layout ─────────────────────────────────────── */
+    body {
+      min-height: 100vh;
+      background: var(--color-bg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: var(--space-8) var(--space-4);
+      gap: var(--space-6);
+    }
+
+    /* Header */
+    .test-header {
+      text-align: center;
+    }
+    .test-logo {
+      display: inline-flex; align-items: center; gap: var(--space-2);
+      background: var(--color-primary-light);
+      border: 1px solid rgba(22,163,74,.2);
+      border-radius: var(--radius-full);
+      padding: 6px 16px; font-size: var(--text-sm);
+      font-weight: var(--weight-bold); color: var(--color-primary-dark);
+      margin-bottom: var(--space-4);
+    }
+    .test-title { font-size: var(--text-2xl); font-weight: var(--weight-extrabold); color: var(--color-text); }
+    .test-sub   { font-size: var(--text-sm); color: var(--color-text-muted); margin-top: var(--space-1); }
+
+    /* Main card */
+    .test-card { width: 100%; max-width: 460px; }
+
+    /* Section inside card */
+    .section-title {
+      font-size: var(--text-xs); font-weight: var(--weight-bold);
+      text-transform: uppercase; letter-spacing: 0.1em;
+      color: var(--color-text-faint); margin-bottom: var(--space-3);
+    }
+
+    /* Profile result box */
+    .profile-box {
+      display: none;
+      flex-direction: column; gap: var(--space-3);
+    }
+    .profile-box.show { display: flex; animation: fadeInUp var(--dur-normal) var(--ease-out); }
+
+    .profile-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: var(--space-2) var(--space-3);
+      background: var(--color-surface-2);
+      border-radius: var(--radius-sm);
+      font-size: var(--text-sm);
+    }
+    .profile-row .key { color: var(--color-text-muted); font-weight: var(--weight-medium); }
+    .profile-row .val { font-weight: var(--weight-semibold); font-family: var(--font-mono); font-size: var(--text-xs); }
+
+    /* Role badge (large) */
+    .role-display {
+      display: flex; align-items: center; gap: var(--space-3);
+      padding: var(--space-4);
+      border-radius: var(--radius-lg);
+      border: 2px solid;
+    }
+    .role-display.citizen { border-color: rgba(37,99,235,.3); background: var(--color-info-light); }
+    .role-display.driver  { border-color: rgba(217,119,6,.3); background: var(--color-warning-light); }
+    .role-display.admin   { border-color: rgba(220,38,38,.3); background: var(--color-danger-light); }
+
+    .role-emoji { font-size: 2rem; }
+    .role-label { font-size: var(--text-lg); font-weight: var(--weight-extrabold); }
+    .role-sub   { font-size: var(--text-xs); color: var(--color-text-muted); }
+
+    /* Trust score bar */
+    .trust-wrap { display: flex; flex-direction: column; gap: var(--space-2); }
+    .trust-header { display: flex; justify-content: space-between; font-size: var(--text-sm); }
+    .trust-label  { color: var(--color-text-muted); font-weight: var(--weight-medium); }
+    .trust-value  { font-weight: var(--weight-bold); color: var(--color-primary); }
+
+    /* Utils test strip */
+    .utils-strip {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: var(--space-3);
+    }
+    .utils-card {
+      padding: var(--space-3);
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+    }
+    .utils-card__label { font-size: var(--text-xs); color: var(--color-text-faint); font-weight: var(--weight-semibold); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 4px; }
+    .utils-card__val   { font-size: var(--text-sm); font-weight: var(--weight-semibold); word-break: break-all; }
+
+    /* Redirect row */
+    .redirect-row { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+
+    /* Console output */
+    .console-out {
+      background: var(--color-dark-bg);
+      color: #a3e635;
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      padding: var(--space-3) var(--space-4);
+      border-radius: var(--radius-md);
+      max-height: 160px; overflow-y: auto;
+      line-height: 1.7;
+      display: none;
+    }
+    .console-out.show { display: block; }
+    .console-out .log-line { opacity: .8; }
+    .console-out .log-line.error { color: #f87171; }
+    .console-out .log-line.success { color: #4ade80; }
+  </style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="test-header animate-fade-in-up">
+  <div class="test-logo">🌿 CleanGreen · Dev Test Page</div>
+  <div class="test-title">Shared Layer Smoke Test</div>
+  <div class="test-sub">Verifies: auth.js · supabaseClient.js · utils.js · theme.css</div>
+</div>
+
+<!-- ── SECTION 1: Login ────────────────────────────────────────── -->
+<div class="card test-card animate-fade-in-up" style="animation-delay:.05s">
+  <div class="section-title">1 · Login</div>
+
+  <!-- Alert box (shown on error) -->
+  <div class="alert alert--danger" id="loginError" style="display:none; margin-bottom:var(--space-3)">
+    <span class="alert__icon">⚠</span>
+    <div class="alert__body">
+      <div class="alert__title">Login failed</div>
+      <div id="loginErrorText"></div>
+    </div>
+  </div>
+
+  <div class="form-group" style="margin-bottom:var(--space-3)">
+    <label class="form-label" for="email">Email</label>
+    <input class="form-input" id="email" type="email"
+           placeholder="admin@cleangreen.in"
+           value="admin@cleangreen.in" autocomplete="email" />
+  </div>
+  <div class="form-group" style="margin-bottom:var(--space-4)">
+    <label class="form-label" for="password">Password</label>
+    <input class="form-input" id="password" type="password"
+           placeholder="demo1234" value="demo1234" autocomplete="current-password" />
+  </div>
+
+  <!-- Quick-fill chips -->
+  <div style="display:flex;gap:var(--space-2);flex-wrap:wrap;margin-bottom:var(--space-4)">
+    <button class="btn btn-ghost btn--sm" onclick="fill('admin@cleangreen.in')">🏛 Admin</button>
+    <button class="btn btn-ghost btn--sm" onclick="fill('driver@cleangreen.in')">🚛 Driver</button>
+    <button class="btn btn-ghost btn--sm" onclick="fill('citizen1@cleangreen.in')">🏙 Citizen 1</button>
+    <button class="btn btn-ghost btn--sm" onclick="fill('citizen2@cleangreen.in')">⭐ Citizen 2</button>
+    <button class="btn btn-ghost btn--sm" onclick="fill('citizen3@cleangreen.in')">🌱 Citizen 3</button>
+  </div>
+
+  <button class="btn btn-primary btn--full" id="loginBtn" onclick="doLogin()">
+    Sign In
+  </button>
+
+  <!-- Logout (shown after login) -->
+  <button class="btn btn-ghost btn--full" id="logoutBtn"
+          style="display:none;margin-top:var(--space-2)" onclick="doLogout()">
+    Sign Out
+  </button>
+</div>
+
+<!-- ── SECTION 2: Profile Result ──────────────────────────────── -->
+<div class="card test-card" id="profileCard" style="display:none">
+  <div class="section-title">2 · Profile (from Supabase)</div>
+
+  <div class="profile-box show" id="profileBox">
+
+    <!-- Role display -->
+    <div class="role-display" id="roleDisplay">
+      <div class="role-emoji" id="roleEmoji">👤</div>
+      <div>
+        <div class="role-label" id="roleLabel">Loading…</div>
+        <div class="role-sub" id="roleSub"></div>
+      </div>
+    </div>
+
+    <!-- Raw fields -->
+    <div class="profile-row">
+      <span class="key">id</span>
+      <span class="val" id="profId">—</span>
+    </div>
+    <div class="profile-row">
+      <span class="key">full_name</span>
+      <span class="val" id="profName">—</span>
+    </div>
+    <div class="profile-row">
+      <span class="key">role</span>
+      <span class="val" id="profRole">—</span>
+    </div>
+    <div class="profile-row">
+      <span class="key">created_at</span>
+      <span class="val" id="profCreated">—</span>
+    </div>
+
+    <!-- Trust score -->
+    <div class="trust-wrap">
+      <div class="trust-header">
+        <span class="trust-label">Trust Score</span>
+        <span class="trust-value" id="trustVal">—</span>
+      </div>
+      <div class="progress">
+        <div class="progress__fill" id="trustBar" style="width:0%"></div>
+      </div>
+    </div>
+
+    <!-- Redirect buttons -->
+    <div class="divider" data-label="navigate to"></div>
+    <div class="redirect-row">
+      <button class="btn btn-secondary btn--sm" onclick="window.location.href='/citizen/'">🏙 /citizen/</button>
+      <button class="btn btn-secondary btn--sm" onclick="window.location.href='/driver/'">🚛 /driver/</button>
+      <button class="btn btn-secondary btn--sm" onclick="window.location.href='/admin/'">🏛 /admin/</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── SECTION 3: Utils Tests ──────────────────────────────────── -->
+<div class="card test-card" style="animation-delay:.1s">
+  <div class="section-title">3 · Utils (no Supabase needed)</div>
+  <div class="utils-strip" id="utilsStrip">
+
+    <div class="utils-card">
+      <div class="utils-card__label">timeAgo — just now</div>
+      <div class="utils-card__val" id="ut-now">—</div>
+    </div>
+    <div class="utils-card">
+      <div class="utils-card__label">timeAgo — 3 min ago</div>
+      <div class="utils-card__val" id="ut-3m">—</div>
+    </div>
+    <div class="utils-card">
+      <div class="utils-card__label">timeAgo — 2 hours ago</div>
+      <div class="utils-card__val" id="ut-2h">—</div>
+    </div>
+    <div class="utils-card">
+      <div class="utils-card__label">timeAgo — 3 days ago</div>
+      <div class="utils-card__val" id="ut-3d">—</div>
+    </div>
+
+    <div class="utils-card" style="grid-column:1/-1">
+      <div class="utils-card__label">haversineDistance — CP to India Gate (approx 2 km)</div>
+      <div class="utils-card__val" id="ut-hav">—</div>
+    </div>
+
+    <div class="utils-card" style="grid-column:1/-1">
+      <div class="utils-card__label">formatCoords</div>
+      <div class="utils-card__val" id="ut-coords">—</div>
+    </div>
+
+    <div class="utils-card" style="grid-column:1/-1">
+      <div class="utils-card__label">getCurrentPosition (click to test — requires permission)</div>
+      <div class="utils-card__val" id="ut-geo">
+        <button class="btn btn-secondary btn--sm" onclick="testGeo()">📍 Get Location</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Toast test buttons -->
+  <div class="divider" data-label="toast"></div>
+  <div style="display:flex;gap:var(--space-2);flex-wrap:wrap">
+    <button class="btn btn-secondary btn--sm" onclick="testToast('default')">ℹ Default</button>
+    <button class="btn btn-primary   btn--sm" onclick="testToast('success')">✓ Success</button>
+    <button class="btn btn-danger    btn--sm" onclick="testToast('danger')">✕ Danger</button>
+    <button class="btn btn-ghost     btn--sm" onclick="testToast('warning')">⚠ Warning</button>
+  </div>
+</div>
+
+<!-- ── SECTION 4: Console log ─────────────────────────────────── -->
+<div class="test-card" style="width:100%;max-width:460px">
+  <div class="console-out show" id="consoleOut">
+    <div class="log-line">&gt; Ready. Fill credentials and click Sign In.</div>
+  </div>
+</div>
+
+<!-- spacer -->
+<div style="height:var(--space-8)"></div>
+
+
+<!-- ══════════════════════════════════════════════════════════════
+     Script (ES module — must run over HTTP, not file://)
+     ══════════════════════════════════════════════════════════════ -->
+<script type="module">
+import { login, logout, getCurrentProfile, redirectByRole }
+  from './shared/auth.js';
+
+import { showToast, timeAgo, haversineDistance,
+         getCurrentPosition, formatCoords }
+  from './shared/utils.js';
+
+/* ── Make some functions global for onclick handlers ─────────── */
+window.fill       = fill;
+window.doLogin    = doLogin;
+window.doLogout   = doLogout;
+window.testToast  = testToast;
+window.testGeo    = testGeo;
+
+
+/* ── Console log helper ──────────────────────────────────────── */
+const logEl = document.getElementById('consoleOut');
+function log(msg, type = '') {
+  const line = document.createElement('div');
+  line.className = 'log-line ' + type;
+  line.textContent = '> ' + msg;
+  logEl.appendChild(line);
+  logEl.scrollTop = logEl.scrollHeight;
+}
+
+
+/* ── Quick-fill demo credentials ─────────────────────────────── */
+function fill(email) {
+  document.getElementById('email').value    = email;
+  document.getElementById('password').value = 'demo1234';
+  document.getElementById('loginError').style.display = 'none';
+  log(`Filled demo credentials for ${email}`);
+}
+
+
+/* ── Login ───────────────────────────────────────────────────── */
+async function doLogin() {
+  const email    = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const btn      = document.getElementById('loginBtn');
+  const errBox   = document.getElementById('loginError');
+
+  errBox.style.display = 'none';
+
+  // Loading state
+  btn.classList.add('btn--loading');
+  btn.innerHTML = '<span class="spinner spinner--sm"></span>&nbsp;Signing in…';
+
+  log(`Attempting login as ${email}…`);
+
+  try {
+    const { session, profile } = await login(email, password);
+
+    log(`✓ Signed in! uid = ${session.user.id}`, 'success');
+    log(`  Role: ${profile.role} | Trust: ${profile.trust_score}`, 'success');
+
+    renderProfile(profile);
+    showToast(`Signed in as ${profile.full_name} (${profile.role})`, 'success');
+
+    btn.style.display     = 'none';
+    document.getElementById('logoutBtn').style.display = '';
+
+  } catch (err) {
+    log(`✗ Login failed: ${err.message}`, 'error');
+    document.getElementById('loginErrorText').textContent = err.message;
+    errBox.style.display = 'flex';
+    showToast(err.message, 'danger');
+  } finally {
+    btn.classList.remove('btn--loading');
+    btn.innerHTML = 'Sign In';
+  }
+}
+
+
+/* ── Logout ──────────────────────────────────────────────────── */
+async function doLogout() {
+  await logout();
+  // logout() calls window.location.replace — execution won't reach here
+}
+
+
+/* ── Render profile card ─────────────────────────────────────── */
+function renderProfile(profile) {
+  document.getElementById('profileCard').style.display = '';
+
+  const ROLES = {
+    citizen : { emoji: '🏙️', label: 'Citizen',  sub: 'Community Reporter',    cls: 'citizen' },
+    driver  : { emoji: '🚛', label: 'Driver',   sub: 'Municipal Truck Driver', cls: 'driver'  },
+    admin   : { emoji: '🏛️', label: 'Org Admin', sub: 'Command Center',        cls: 'admin'   },
+  };
+  const r = ROLES[profile.role] ?? { emoji: '👤', label: profile.role, sub: '', cls: '' };
+
+  document.getElementById('roleDisplay').className = `role-display ${r.cls}`;
+  document.getElementById('roleEmoji').textContent  = r.emoji;
+  document.getElementById('roleLabel').textContent  = r.label;
+  document.getElementById('roleSub').textContent    = r.sub;
+
+  document.getElementById('profId').textContent      = profile.id.substring(0, 20) + '…';
+  document.getElementById('profName').textContent    = profile.full_name;
+  document.getElementById('profRole').textContent    = profile.role;
+  document.getElementById('profCreated').textContent = timeAgo(profile.created_at);
+
+  const score = profile.trust_score ?? 50;
+  document.getElementById('trustVal').textContent      = `${score} / 100`;
+  document.getElementById('trustBar').style.width      = `${score}%`;
+  document.getElementById('trustBar').style.background =
+    score >= 80 ? 'linear-gradient(90deg,#16a34a,#22c55e)'
+    : score >= 50 ? 'linear-gradient(90deg,#d97706,#f59e0b)'
+    : 'linear-gradient(90deg,#dc2626,#f87171)';
+}
+
+
+/* ── Check if already logged in on page load ─────────────────── */
+(async () => {
+  const profile = await getCurrentProfile();
+  if (profile) {
+    log(`Already logged in: ${profile.full_name} (${profile.role})`, 'success');
+    renderProfile(profile);
+    document.getElementById('loginBtn').style.display  = 'none';
+    document.getElementById('logoutBtn').style.display = '';
+  } else {
+    log('No active session detected.');
+  }
+})();
+
+
+/* ── Utils tests (run immediately, no Supabase needed) ────────── */
+const now  = new Date();
+const _3m  = new Date(now - 3 * 60 * 1000);
+const _2h  = new Date(now - 2 * 60 * 60 * 1000);
+const _3d  = new Date(now - 3 * 24 * 60 * 60 * 1000);
+
+document.getElementById('ut-now').textContent    = timeAgo(now);
+document.getElementById('ut-3m').textContent     = timeAgo(_3m);
+document.getElementById('ut-2h').textContent     = timeAgo(_2h);
+document.getElementById('ut-3d').textContent     = timeAgo(_3d);
+
+// Connaught Place → India Gate (~2.2 km)
+const dist = haversineDistance(28.6315, 77.2167, 28.6129, 77.2295);
+document.getElementById('ut-hav').textContent    =
+  `${dist.toFixed(0)} m  (${(dist/1000).toFixed(2)} km)`;
+
+document.getElementById('ut-coords').textContent =
+  formatCoords(28.6315, 77.2167);
+
+log('Utils tests rendered (timeAgo, haversine, formatCoords).');
+
+
+/* ── Toast test ──────────────────────────────────────────────── */
+function testToast(type) {
+  const msgs = {
+    default: 'This is an info toast notification',
+    success: 'Action completed successfully!',
+    danger:  'Something went wrong. Please try again.',
+    warning: 'Caution: this action is irreversible.',
+  };
+  showToast(msgs[type], type);
+  log(`Toast shown: type=${type}`);
+}
+
+
+/* ── Geolocation test ────────────────────────────────────────── */
+async function testGeo() {
+  const el = document.getElementById('ut-geo');
+  el.textContent = '⏳ Requesting…';
+  try {
+    const { lat, lng, accuracy } = await getCurrentPosition();
+    el.textContent = `${formatCoords(lat, lng)} (±${accuracy.toFixed(0)} m)`;
+    log(`Location: ${lat.toFixed(5)}, ${lng.toFixed(5)} ±${accuracy.toFixed(0)} m`, 'success');
+    showToast('Location captured!', 'success');
+  } catch (err) {
+    el.textContent = `Error: ${err.message}`;
+    log(`Geolocation error: ${err.message}`, 'error');
+    showToast(err.message, 'danger');
+  }
+}
+</script>
+
+</body>
+</html>
